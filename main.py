@@ -5,24 +5,23 @@ from config import DATA_DIR, DOCS_DIR, LLM_API_KEY, LLM_MODEL, LLM_BASE_URL
 
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
-from langchain_core.tools import tool
 
 import tools
 
 logger = get_logger(__name__)
 
 
-# SYSTEM_PROMPT = (
-#     "Sos MachineTwin, un asistente técnico para la Torre de Enfriamiento T-100. "
-#     "Respondés en español, de forma concisa y técnica. "
-#     "Si no tenés datos suficientes o te consultan sobre el TP2, especificaciones o documentación técnica, "
-#     "utilizá la herramienta 'consultar_documentacion' para buscar en los documentos. "
-#     "Si no encontrás información suficiente, indícalo de forma clara."
-# )
-SYSTEM_PROMPT = (
-    "Sos un asistente"
-    "Respondés en español, de forma concisa y técnica. "
-)
+SYSTEM_PROMPT = """
+Sos MachineTwin, un asistente técnico para maquinas. 
+Respondés en español, de forma concisa y técnica. 
+Si no tenés datos suficientes, especificaciones o documentación técnica, 
+utilizá las herramientas disponibles para buscar la información necesaria. 
+Si no encontrás información suficiente, indícalo de forma clara.
+"""
+SYSTEM_PROMPT1 = """
+Sos un asistente
+Respondés en español, de forma concisa y técnica.
+"""
 
 
 class MachineTwin:

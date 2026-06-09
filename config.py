@@ -7,7 +7,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
 LOGS_DIR = BASE_DIR / "logs"
-DOCS_DIR = BASE_DIR / "docs"
+DOCS_DIR = BASE_DIR / "docs-machines"
 
 DATA_DIR.mkdir(exist_ok=True)
 LOGS_DIR.mkdir(exist_ok=True)
