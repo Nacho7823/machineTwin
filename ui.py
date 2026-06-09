@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 WELCOME_MSG = (
-    "Hola! Soy MachineTwin, tu asistente tecnico para la Torre de Enfriamiento T-100.\n"
+    "Hola! Soy MachineTwin, tu asistente tecnico.\n"
     "Escribi tu pregunta para empezar."
 )
 HELP_MSG = (
