@@ -1,7 +1,6 @@
 import curses
 from log import get_logger
 from ui import ChatUI, HELP_MSG
-from modules import DigitalTwinData
 from config import DATA_DIR, DOCS_DIR, LLM_API_KEY, LLM_MODEL, LLM_BASE_URL
 
 from langchain_openai import ChatOpenAI
@@ -30,7 +29,6 @@ class MachineTwin:
     def __init__(self):
 
         self.rag = tools.rag
-        self.twin_data = DigitalTwinData(DATA_DIR)
         self.agent = None
         self._history = []
         self._init_agent()
@@ -42,7 +40,7 @@ class MachineTwin:
             openai_api_key=api_key,
             openai_api_base=LLM_BASE_URL,
             temperature=0.3,
-        ).bind_tools([tools.consultar_documentacion])
+        ).bind_tools([tools.consultar_documentacion, tools.listar_archivos_datos, tools.leer_archivo_datos])
 
     def process(self, query: str) -> str:
         if not self.agent:
@@ -80,8 +78,13 @@ class MachineTwin:
                 tool_id = tool_call["id"]
                 
                 logger.info(f"El agente decidio llamar a la herramienta '{tool_name}' con argumentos: {tool_args}")
-                if tool_name == "consultar_documentacion":
-                    tool_output = tools.consultar_documentacion.invoke(tool_args)
+                available_tools = {
+                    "consultar_documentacion": tools.consultar_documentacion,
+                    "listar_archivos_datos": tools.listar_archivos_datos,
+                    "leer_archivo_datos": tools.leer_archivo_datos,
+                }
+                if tool_name in available_tools:
+                    tool_output = available_tools[tool_name].invoke(tool_args)
                 else:
                     tool_output = f"Error: Herramienta '{tool_name}' no encontrada."
                     logger.warning(f"Intento de usar herramienta no existente '{tool_name}'")
