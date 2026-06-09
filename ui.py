@@ -73,7 +73,8 @@ class ChatUI:
         ch = self.stdscr.getch()
         if ch == -1:
             return None
-        if ch == ord("q") or ch == ord("Q"):
+        # Ctrl+Q (ASCII 17) para salir de forma rápida
+        if ch == 17:
             return ("quit", None)
         if self.thinking:
             return None
