@@ -33,36 +33,39 @@ class DocumentRAG:
 
         self._initialize_db()
 
+    def add_document(self, doc: dict) -> int:
+        chunks = chunk_por_oracion(doc['contenido'])
+        if not chunks:
+            return 0
+
+        chunk_ids = [f"{doc['id']}_chunk_{i}" for i in range(len(chunks))]
+        metadatas: list[ChunkMetadata] = [
+            {
+                'titulo': doc['titulo'],
+                'doc_id': doc['id'],
+                'chunk_index': i,
+            }
+            for i in range(len(chunks))
+        ]
+
+        embeddings = modelo_emb.encode(chunks).tolist()
+        self.collection.add(
+            documents=chunks,
+            embeddings=embeddings,
+            metadatas=metadatas,
+            ids=chunk_ids,
+        )
+        return len(chunks)
+
     def _initialize_db(self):
         logger.info("Inicializando base de datos RAG...")
         docs = cargar_documentos(self.docs_dir)
 
-        all_chunks: list[str] = []
-        all_ids: list[str] = []
-        all_metadatas: list[ChunkMetadata] = []
-        
+        total_chunks = 0
         for doc in docs:
-            chunks = chunk_por_oracion(doc['contenido'])
-            for i, chunk in enumerate(chunks):
-                all_chunks.append(chunk)
-                all_ids.append(f"{doc['id']}_chunk_{i}")
-                
-                metadata_chunk: ChunkMetadata = {
-                    'titulo': doc['titulo'],
-                    'doc_id': doc['id'],
-                    'chunk_index': i,
-                }
-                all_metadatas.append(metadata_chunk)
-                
-        if all_chunks:
-            logger.info(f"Agregando {len(all_chunks)} chunks de {len(docs)} documentos a la coleccion RAG.")
-            all_embeddings = modelo_emb.encode(all_chunks).tolist()
-            self.collection.add(
-                documents=all_chunks,
-                embeddings=all_embeddings,
-                metadatas=all_metadatas,
-                ids=all_ids,
-            )
+            total_chunks += self.add_document(doc)
+
+        if total_chunks:
             self.ready = True
             logger.info(f"✓ Indexados {self.collection.count()} chunks en ChromaDB")
         else:
