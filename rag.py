@@ -1,18 +1,13 @@
 from pathlib import Path
-from typing import TypedDict
 import chromadb
 from utils import cargar_documentos, chunk_por_oracion
 from log import get_logger
+from models import ChunkMetadata, Document
 from sentence_transformers import SentenceTransformer
 
 
 logger = get_logger(__name__)
 modelo_emb = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-
-class ChunkMetadata(TypedDict):
-    titulo: str
-    doc_id: str
-    chunk_index: int
 
 
 class DocumentRAG:
@@ -33,7 +28,7 @@ class DocumentRAG:
 
         self._initialize_db()
 
-    def add_document(self, doc: dict) -> int:
+    def add_document(self, doc: Document) -> int:
         chunks = chunk_por_oracion(doc['contenido'])
         if not chunks:
             return 0
