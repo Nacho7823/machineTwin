@@ -69,16 +69,21 @@ class MachineTwin:
 
 if __name__ == "__main__":
     import sys
-    from uiBase import BaseUI
 
     twin = MachineTwin()
 
     def handle_completion(msg: str):
         return twin.process(msg)
 
-    
-    from uiTerminal import TUI
-    ui: BaseUI = TUI()
+    mode = sys.argv[1] if len(sys.argv) > 1 else "terminal"
+
+    from uiBase import BaseUI
+    if mode == "web":
+        from uiWeb import WebUI
+        ui: BaseUI = WebUI()
+    else:
+        from uiTerminal import TUI
+        ui: BaseUI = TUI()
 
     ui.set_on_completion(handle_completion)
     ui.start()
