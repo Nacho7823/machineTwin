@@ -1,15 +1,12 @@
 import curses
 from log import get_logger
 from ui import ChatUI, HELP_MSG
-from config import DATA_DIR, DOCS_DIR, LLM_API_KEY, LLM_MODEL, LLM_BASE_URL
-
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+from llm import LLMAgent
+from langchain_core.messages import HumanMessage, SystemMessage
 
 import tools
 
 logger = get_logger(__name__)
-
 
 SYSTEM_PROMPT = """
 Sos MachineTwin, un asistente técnico para maquinas. 
@@ -20,36 +17,27 @@ Si no encontrás información suficiente, indícalo de forma clara.
 
 Al usar la herramienta ejecutar_codigo, las variables machine_current (dict), machine_history (pd.DataFrame) y pd (pandas) ya están disponibles. NO es necesario cargar archivos ni incrustar datos en el código.
 """
-SYSTEM_PROMPT1 = """
-Sos un asistente
-Respondés en español, de forma concisa y técnica.
-"""
+
+
+TOOLS = {
+    "consultar_documentacion": tools.consultar_documentacion,
+    "listar_archivos_datos": tools.listar_archivos_datos,
+    "leer_archivo_datos": tools.leer_archivo_datos,
+    "ejecutar_codigo": tools.ejecutar_codigo,
+}
 
 
 class MachineTwin:
     def __init__(self):
-
-        self.agent = None
+        self._agent = LLMAgent(tools=TOOLS)
         self._history = []
-        self._init_agent()
 
-    def _init_agent(self):
-        api_key = LLM_API_KEY if LLM_API_KEY else "a"
-        self._tools = {
-            "consultar_documentacion": tools.consultar_documentacion,
-            "listar_archivos_datos": tools.listar_archivos_datos,
-            "leer_archivo_datos": tools.leer_archivo_datos,
-            "ejecutar_codigo": tools.ejecutar_codigo,
-        }
-        self.agent = ChatOpenAI(
-            model=LLM_MODEL,
-            openai_api_key=api_key,
-            openai_api_base=LLM_BASE_URL,
-            temperature=0.3,
-        ).bind_tools(list(self._tools.values()))
+    @property
+    def ready(self) -> bool:
+        return self._agent.ready
 
     def process(self, query: str) -> str:
-        if not self.agent:
+        if not self._agent.ready:
             return "Error: No se configuro la API key (LLM_API_KEY)."
 
         logger.info(f"Procesando consulta del usuario: '{query}'")
@@ -60,7 +48,7 @@ class MachineTwin:
         ]
 
         try:
-            response = self.llamada_con_herramientas(messages)
+            response = self._agent.invoke(messages)
             answer = response.content
             logger.info("Respuesta generada exitosamente.")
             self._history.append(HumanMessage(content=query))
@@ -72,30 +60,6 @@ class MachineTwin:
             logger.error(f"Error al procesar consulta: {e}")
             return f"Error al consultar el LLM: {e}"
 
-    def llamada_con_herramientas(self, messages: list):
-        logger.info("Iniciando invocacion del agente (llamada_con_herramientas)")
-        response = self.agent.invoke(messages)
-
-        while response.tool_calls:
-            messages.append(response)
-            for tool_call in response.tool_calls:
-                tool_name = tool_call["name"]
-                tool_args = tool_call["args"]
-                tool_id = tool_call["id"]
-                
-                logger.info(f"El agente decidio llamar a la herramienta '{tool_name}' con argumentos: {tool_args}")
-                tool = self._tools.get(tool_name)
-                if tool:
-                    tool_output = tool.invoke(tool_args)
-                else:
-                    tool_output = f"Error: Herramienta '{tool_name}' no encontrada."
-                    logger.warning(f"Intento de usar herramienta no existente '{tool_name}'")
-                messages.append(ToolMessage(content=str(tool_output), tool_call_id=tool_id))
-            response = self.agent.invoke(messages)
-
-        return response
-
-
     def clear_history(self):
         self._history.clear()
 
@@ -104,7 +68,7 @@ def main(stdscr):
     ui = ChatUI(stdscr)
     ui.start()
     bot = MachineTwin()
-    ui.set_status(bot.agent is not None, True)
+    ui.set_status(bot.ready, True)
 
     while True:
         ui.draw()
