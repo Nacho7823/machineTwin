@@ -1,6 +1,7 @@
 import curses
 import textwrap
 from datetime import datetime
+from uiBase import BaseUI
 
 
 WELCOME_MSG = (
@@ -73,7 +74,6 @@ class ChatUI:
         ch = self.stdscr.getch()
         if ch == -1:
             return None
-        # Ctrl+Q (ASCII 17) para salir de forma rápida
         if ch == 17:
             return ("quit", None)
         if self.thinking:
@@ -184,3 +184,39 @@ class ChatUI:
     def _visible_lines(self):
         h, _ = self.stdscr.getmaxyx()
         return h - 5
+
+
+class TUI(BaseUI):
+    def __init__(self):
+        super().__init__()
+
+    def start(self):
+        curses.wrapper(_main, self)
+
+
+def _main(stdscr, tui: TUI = None):
+    ui = ChatUI(stdscr)
+    ui.start()
+    ui.set_status(True, True)
+
+    while True:
+        ui.draw()
+        event = ui.get_event()
+        if event is None:
+            continue
+        kind, data = event
+
+        if kind == "quit":
+            break
+        elif kind == "clear":
+            ui.chat_history.clear()
+            ui.add_message("bot", "Chat limpiado.")
+        elif kind == "help":
+            ui.add_message("bot", HELP_MSG)
+        elif kind in ("message", "command"):
+            ui.add_message("user", data)
+            ui.set_thinking(True)
+            ui.draw()
+            response = tui.onCompletition(data)
+            ui.set_thinking(False)
+            ui.add_message("bot", response)

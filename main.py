@@ -1,6 +1,4 @@
-import curses
 from log import get_logger
-from ui import ChatUI, HELP_MSG
 from llm import LLMAgent
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -64,35 +62,28 @@ class MachineTwin:
         self._history.clear()
 
 
-def main(stdscr):
-    ui = ChatUI(stdscr)
-    ui.start()
-    bot = MachineTwin()
-    ui.set_status(bot.ready, True)
 
-    while True:
-        ui.draw()
-        event = ui.get_event()
-        if event is None:
-            continue
-        kind, data = event
 
-        if kind == "quit":
-            break
-        elif kind == "clear":
-            bot.clear_history()
-            ui.chat_history.clear()
-            ui.add_message("bot", "Chat limpiado.")
-        elif kind == "help":
-            ui.add_message("bot", HELP_MSG)
-        elif kind in ("message", "command"):
-            ui.add_message("user", data)
-            ui.set_thinking(True)
-            ui.draw()
-            response = bot.process(data)
-            ui.set_thinking(False)
-            ui.add_message("bot", response)
+
 
 
 if __name__ == "__main__":
-    curses.wrapper(main)
+    import sys
+    from uiBase import BaseUI
+
+    twin = MachineTwin()
+
+    def handle_completion(msg: str):
+        return twin.process(msg)
+
+    
+    from uiTerminal import TUI
+    ui: BaseUI = TUI()
+
+    ui.set_on_completion(handle_completion)
+    ui.start()
+
+
+
+
+
