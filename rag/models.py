@@ -11,3 +11,9 @@ class Document(TypedDict):
     id: str
     titulo: str
     contenido: str
+
+
+class QueryResult(TypedDict):
+    document: str
+    metadata: ChunkMetadata
+    distance: float

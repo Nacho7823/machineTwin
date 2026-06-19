@@ -27,7 +27,6 @@ Respondés en español, de forma concisa y técnica.
 class MachineTwin:
     def __init__(self):
 
-        self.rag = tools.rag
         self.agent = None
         self._history = []
         self._init_agent()
@@ -101,7 +100,7 @@ def main(stdscr):
     ui = ChatUI(stdscr)
     ui.start()
     bot = MachineTwin()
-    ui.set_status(bot.agent is not None, bot.rag is not None)
+    ui.set_status(bot.agent is not None, True)
 
     while True:
         ui.draw()

@@ -2,7 +2,7 @@ from pathlib import Path
 import chromadb
 from utils import cargar_documentos, chunk_por_oracion
 from log import get_logger
-from models import ChunkMetadata, Document
+from rag.models import ChunkMetadata, Document, QueryResult
 from sentence_transformers import SentenceTransformer
 
 
@@ -66,10 +66,10 @@ class DocumentRAG:
         else:
             logger.warning("No se encontraron documentos para inicializar la base de datos RAG.")
 
-    def query(self, question: str, k: int = 3) -> str:
+    def query(self, question: str, k: int = 3) -> list[QueryResult]:
         if not self.ready:
             logger.warning("Intento de consulta RAG pero el sistema no esta listo.")
-            return "No hay documentos indexados o el sistema RAG no está listo."
+            return []
             
         logger.info(f"Realizando consulta RAG: '{question}' con k={k}")
         try:
@@ -82,20 +82,21 @@ class DocumentRAG:
             
             if not results or not results.get('documents') or not results['documents'][0]:
                 logger.info("No se encontraron documentos relevantes en ChromaDB.")
-                return "No se encontraron documentos relevantes."
+                return []
                 
-            contexto_partes: list[str] = []
+            query_results: list[QueryResult] = []
             for i in range(len(results['documents'][0])):
-                doc = results['documents'][0][i]
-                metadata: ChunkMetadata = results['metadatas'][0][i]
-                titulo = metadata['titulo']
-                contexto_partes.append(f'[{i+1}] ({titulo}): {doc}')
+                query_results.append({
+                    'document': results['documents'][0][i],
+                    'metadata': results['metadatas'][0][i],
+                    'distance': results['distances'][0][i],
+                })
             
-            logger.info(f"Consulta RAG exitosa. Se recuperaron {len(contexto_partes)} fragmentos relevantes.")
-            return '\n\n'.join(contexto_partes)
+            logger.info(f"Consulta RAG exitosa. Se recuperaron {len(query_results)} fragmentos relevantes.")
+            return query_results
         except Exception as e:
             logger.error(f"Error al consultar el RAG: {e}")
-            return f"Error al consultar el RAG: {e}"
+            return []
 
 
 
@@ -131,7 +132,8 @@ if __name__ == "__main__":
         
         pregunta = "¿Quiénes son los docentes de la cátedra?"
         print(f"\nPregunta: {pregunta}")
-        contexto = rag_system.query(pregunta, k=2)
-        print(f"Contexto recuperado:\n{contexto}")
+        resultados = rag_system.query(pregunta, k=2)
+        for r in resultados:
+            print(f'[{r["metadata"]["titulo"]}]: {r["document"]} (dist: {r["distance"]:.4f})')
 
 

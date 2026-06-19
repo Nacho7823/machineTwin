@@ -1,20 +1,25 @@
 from log import get_logger
 from langchain_core.tools import tool
-from config import DOCS_DIR, DATA_DIR
-from rag import DocumentRAG
+from config import DATA_DIR
+from rag.nativeRAG import query
 
 logger = get_logger(__name__)
-
-rag = DocumentRAG(DOCS_DIR)
 
 
 
 @tool
-def consultar_documentacion(query: str) -> str:
+def consultar_documentacion(q: str) -> str:
     """Consulta la documentación del sistema utilizando RAG para responder preguntas o buscar información."""
-    logger.info(f"Se ejecuto la herramienta 'consultar_documentacion' con query: '{query}'")
+    logger.info(f"Se ejecuto la herramienta 'consultar_documentacion' con query: '{q}'")
     try:
-        resultado = rag.query(query)
+        resultados = query(q)
+        if not resultados:
+            return "No se encontraron documentos relevantes."
+        contexto_partes = [
+            f'[{i+1}] ({r["metadata"]["titulo"]}): {r["document"]}'
+            for i, r in enumerate(resultados)
+        ]
+        resultado = '\n\n'.join(contexto_partes)
         logger.info(f"Herramienta 'consultar_documentacion' devolvio un resultado exitoso (longitud: {len(resultado)}).")
         return resultado
     except Exception as e:
