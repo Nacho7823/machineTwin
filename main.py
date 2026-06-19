@@ -17,6 +17,8 @@ Respondés en español, de forma concisa y técnica.
 Si no tenés datos suficientes, especificaciones o documentación técnica, 
 utilizá las herramientas disponibles para buscar la información necesaria. 
 Si no encontrás información suficiente, indícalo de forma clara.
+
+Al usar la herramienta ejecutar_codigo, las variables machine_current (dict), machine_history (pd.DataFrame) y pd (pandas) ya están disponibles. NO es necesario cargar archivos ni incrustar datos en el código.
 """
 SYSTEM_PROMPT1 = """
 Sos un asistente
@@ -38,7 +40,11 @@ class MachineTwin:
             openai_api_key=api_key,
             openai_api_base=LLM_BASE_URL,
             temperature=0.3,
-        ).bind_tools([tools.consultar_documentacion, tools.listar_archivos_datos, tools.leer_archivo_datos])
+        ).bind_tools([
+            tools.consultar_documentacion, 
+            tools.listar_archivos_datos, 
+            tools.leer_archivo_datos,
+            tools.ejecutar_codigo])
 
     def process(self, query: str) -> str:
         if not self.agent:
@@ -80,6 +86,7 @@ class MachineTwin:
                     "consultar_documentacion": tools.consultar_documentacion,
                     "listar_archivos_datos": tools.listar_archivos_datos,
                     "leer_archivo_datos": tools.leer_archivo_datos,
+                    "ejecutar_codigo": tools.ejecutar_codigo,
                 }
                 if tool_name in available_tools:
                     tool_output = available_tools[tool_name].invoke(tool_args)
