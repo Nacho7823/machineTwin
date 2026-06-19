@@ -35,16 +35,18 @@ class MachineTwin:
 
     def _init_agent(self):
         api_key = LLM_API_KEY if LLM_API_KEY else "a"
+        self._tools = {
+            "consultar_documentacion": tools.consultar_documentacion,
+            "listar_archivos_datos": tools.listar_archivos_datos,
+            "leer_archivo_datos": tools.leer_archivo_datos,
+            "ejecutar_codigo": tools.ejecutar_codigo,
+        }
         self.agent = ChatOpenAI(
             model=LLM_MODEL,
             openai_api_key=api_key,
             openai_api_base=LLM_BASE_URL,
             temperature=0.3,
-        ).bind_tools([
-            tools.consultar_documentacion, 
-            tools.listar_archivos_datos, 
-            tools.leer_archivo_datos,
-            tools.ejecutar_codigo])
+        ).bind_tools(list(self._tools.values()))
 
     def process(self, query: str) -> str:
         if not self.agent:
@@ -82,14 +84,9 @@ class MachineTwin:
                 tool_id = tool_call["id"]
                 
                 logger.info(f"El agente decidio llamar a la herramienta '{tool_name}' con argumentos: {tool_args}")
-                available_tools = {
-                    "consultar_documentacion": tools.consultar_documentacion,
-                    "listar_archivos_datos": tools.listar_archivos_datos,
-                    "leer_archivo_datos": tools.leer_archivo_datos,
-                    "ejecutar_codigo": tools.ejecutar_codigo,
-                }
-                if tool_name in available_tools:
-                    tool_output = available_tools[tool_name].invoke(tool_args)
+                tool = self._tools.get(tool_name)
+                if tool:
+                    tool_output = tool.invoke(tool_args)
                 else:
                     tool_output = f"Error: Herramienta '{tool_name}' no encontrada."
                     logger.warning(f"Intento de usar herramienta no existente '{tool_name}'")
