@@ -6,7 +6,7 @@ Los campos "Respuesta observada" y "Resultado" se completan durante la ejecucion
 ## Caso 1 - Estado actual
 
 **Estado del simulador o datos necesarios:**  
-Simulador ejecutandose y archivo `data/machine_current.json` disponible.
+Simulador ejecutandose y archivos `data/<machine_key>/machine_current.json` disponibles.
 
 **Entrada del usuario:**  
 Dame el estado actual de la maquina.
@@ -15,7 +15,7 @@ Dame el estado actual de la maquina.
 `obtener_estado_actual`
 
 **Respuesta esperada:**  
-El agente informa maquina, estado operativo, variables actuales, valores y unidades. Debe mencionar que uso el estado actual como fuente.
+El agente informa las maquinas detectadas, estado operativo, variables actuales, valores y unidades.
 
 **Respuesta observada:**  
 
@@ -26,7 +26,7 @@ El agente informa maquina, estado operativo, variables actuales, valores y unida
 ## Caso 2 - Tendencia de temperatura
 
 **Estado del simulador o datos necesarios:**  
-Archivo `data/operation_history.csv` con al menos dos registros y columna `temperature`.
+Archivos `data/<machine_key>/operation_history.csv` con al menos dos registros y columna `temperature`.
 
 **Entrada del usuario:**  
 Analiza la tendencia de temperatura de los ultimos registros.
@@ -35,7 +35,7 @@ Analiza la tendencia de temperatura de los ultimos registros.
 `analizar_tendencia`
 
 **Respuesta esperada:**  
-El agente resume cantidad de muestras, valor inicial, valor final, variacion y tendencia. Debe indicar que uso el historial como fuente.
+El agente resume por maquina la cantidad de muestras, valor inicial, valor final, variacion y tendencia cuando la variable existe.
 
 **Respuesta observada:**  
 
@@ -55,7 +55,7 @@ Hay variables fuera de rango?
 `detectar_fuera_de_limites`
 
 **Respuesta esperada:**  
-El agente identifica si las variables estan en estado `normal`, `fuera_rango_optimo`, `fuera_rango_operativo` o `sin_datos`. No debe inventar rangos.
+El agente identifica por maquina si las variables estan en estado `normal`, `fuera_rango_optimo`, `fuera_rango_operativo` o `sin_datos`. No debe inventar rangos.
 
 **Respuesta observada:**  
 
@@ -66,7 +66,7 @@ El agente identifica si las variables estan en estado `normal`, `fuera_rango_opt
 ## Caso 4 - Evento o falla reciente
 
 **Estado del simulador o datos necesarios:**  
-Archivo `data/event_history.csv` disponible, o ausencia del archivo para validar el mensaje sin eventos.
+Archivos `data/<machine_key>/event_history.csv` disponibles, o ausencia de eventos para validar el mensaje sin eventos.
 
 **Entrada del usuario:**  
 Mostrame eventos recientes de la maquina.
@@ -75,7 +75,7 @@ Mostrame eventos recientes de la maquina.
 `consultar_eventos_recientes`
 
 **Respuesta esperada:**  
-El agente muestra eventos recientes con fecha, tipo, severidad y descripcion, o indica claramente que no hay eventos registrados.
+El agente muestra eventos recientes con maquina, fecha, tipo, severidad y descripcion, o indica claramente que no hay eventos registrados.
 
 **Respuesta observada:**  
 
@@ -89,13 +89,13 @@ El agente muestra eventos recientes con fecha, tipo, severidad y descripcion, o 
 Documentacion tecnica disponible en `docs-machines`.
 
 **Entrada del usuario:**  
-Que recomendacion de mantenimiento podes dar para esta maquina?
+Que recomendacion de mantenimiento podes dar para estas maquinas?
 
 **Tools esperadas:**  
 `consultar_documentacion`
 
 **Respuesta esperada:**  
-El agente da una recomendacion basada en documentacion tecnica. Si falta informacion, debe aclararlo. No debe inventar causas ni tareas.
+El agente da recomendaciones basadas en documentacion tecnica. Si falta informacion para una maquina, debe aclararlo. No debe inventar causas ni tareas.
 
 **Respuesta observada:**  
 
@@ -115,7 +115,7 @@ Y la temperatura sigue siendo normal?
 `obtener_estado_actual`, `detectar_fuera_de_limites`
 
 **Respuesta esperada:**  
-El agente interpreta que "la temperatura" refiere a la maquina consultada previamente, revisa datos actuales y limites, y responde si el valor esta dentro de rango.
+El agente revisa datos actuales y limites, y responde si la temperatura esta dentro de rango por maquina o aclara a que maquina aplica.
 
 **Respuesta observada:**  
 

@@ -28,7 +28,7 @@ const HELP_MSG = `Comandos:
 const QUICK_ACTIONS: QuickAction[] = [
   {
     label: 'Ver alertas',
-    prompt: 'Mostrame el detalle de las alertas activas no resueltas, incluyendo fecha, variable afectada, severidad y si requieren acción.',
+    prompt: 'Mostrame el detalle de las alertas registradas, incluyendo fecha, variable afectada, severidad y si requieren acción.',
   },
   {
     label: 'Revisar anomalías',

@@ -34,6 +34,13 @@ class UIRegressionTests(unittest.TestCase):
         self.assertIn("shouldShowQuickActions", app)
         self.assertIn("onQuickPrompt", message_list)
 
+    def test_chat_prompts_do_not_expose_alert_resolution_state(self):
+        app = (ROOT / "frontend/src/App.tsx").read_text(encoding="utf-8")
+        main = (ROOT / "main.py").read_text(encoding="utf-8")
+
+        self.assertNotIn("no resueltas", app)
+        self.assertNotIn("no resueltas", main)
+
 
 if __name__ == "__main__":
     unittest.main()
