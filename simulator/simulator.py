@@ -324,3 +324,40 @@ class MachineSimulator:
         else:
             df.to_csv(csv_file, index=False)
         self._events_generated += 1
+
+if __name__ == "__main__":
+    import sys
+    import asyncio
+    from pathlib import Path
+
+    data_dir = Path("data")
+    simulator = MachineSimulator(data_dir)
+
+    interval = 3
+    if len(sys.argv) > 1:
+        try:
+            interval = int(sys.argv[1])
+        except ValueError:
+            print(
+                "El intervalo debe ser un número entero. "
+                "Usando el valor predeterminado de 3 segundos."
+            )
+
+    simulator.running = True
+    simulator.interval = interval
+
+    print(
+        f"Iniciando simulador para la máquina: "
+        f"{simulator.machine_type} con intervalo de {interval} segundos."
+    )
+    print(f"Los datos se guardarán en: {data_dir.absolute()}")
+
+    try:
+        asyncio.run(simulator._run())
+    except KeyboardInterrupt:
+        print("\nSimulador detenido por el usuario.")
+    except Exception as e:
+        print(f"Se produjo un error inesperado: {e}")
+    finally:
+        simulator.running = False
+        print("Simulador finalizado.")
