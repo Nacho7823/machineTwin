@@ -47,5 +47,6 @@ export interface SidebarProps {
   onNew: () => void
   onDelete: (id: string) => void
   open: boolean
+  collapsed: boolean
   onClose: () => void
 }

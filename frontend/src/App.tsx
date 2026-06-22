@@ -59,11 +59,15 @@ function getInitialDarkMode(): boolean {
 export default function App() {
   const [conversations, setConversations] = useState<Conversation[]>(loadConversations)
   const [activeId, setActiveId] = useState<string | null>(null)
-  const [messages, setMessages] = useState<Message[]>([])
-  const [thinking, setThinking] = useState(false)
+  const [pendingIds, setPendingIds] = useState<string[]>([])
   const [darkMode, setDarkMode] = useState(getInitialDarkMode)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const activeConversation = conversations.find(c => c.id === activeId)
+  const messages = activeConversation?.messages ?? []
+  const thinking = activeId ? pendingIds.includes(activeId) : false
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -86,120 +90,138 @@ export default function App() {
     ))
   }, [])
 
-  const handleNewConversation = () => {
+  const createConversation = useCallback((initialMessages: Message[] = [], title?: string) => {
+    const id = generateId()
     const newConv: Conversation = {
-      id: generateId(),
-      title: 'Nueva conversacion',
-      messages: [],
+      id,
+      title: title || getTitleFromMessages(initialMessages),
+      messages: initialMessages,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     }
     setConversations(prev => [newConv, ...prev])
-    setActiveId(newConv.id)
-    setMessages([])
-    setSidebarOpen(false)
+    setActiveId(id)
+    return id
+  }, [])
+
+  const handleNewConversation = () => {
+    createConversation()
+    setMobileSidebarOpen(false)
   }
 
   const handleSelectConversation = (id: string) => {
     const conv = conversations.find(c => c.id === id)
     if (conv) {
       setActiveId(id)
-      setMessages(conv.messages)
     }
-    setSidebarOpen(false)
+    setMobileSidebarOpen(false)
   }
 
   const handleDeleteConversation = (id: string) => {
-    setConversations(prev => prev.filter(c => c.id !== id))
+    const remaining = conversations.filter(c => c.id !== id)
+    setConversations(remaining)
+    setPendingIds(prev => prev.filter(pendingId => pendingId !== id))
     if (activeId === id) {
-      setActiveId(null)
-      setMessages([])
+      const nextId = remaining[0]?.id ?? null
+      setActiveId(nextId)
     }
   }
 
   const clearChat = useCallback(async () => {
-    setMessages([])
     if (activeId) {
       updateConversation(activeId, [])
     }
 
     try {
-      await fetch('/api/clear', { method: 'POST' })
+      await fetch('/api/clear', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversation_id: activeId }),
+      })
     } catch {
       // El chat visual se limpia aunque el backend no este disponible.
     }
   }, [activeId, updateConversation])
 
+  const toggleSidebar = () => {
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      setMobileSidebarOpen(prev => !prev)
+      return
+    }
+    setSidebarCollapsed(prev => !prev)
+  }
+
   const sendMessage = async (text: string) => {
-    if (!text.trim() || thinking) return
+    if (!text.trim()) return
 
     if (text === '/clear') {
       await clearChat()
       return
     }
 
+    let currentId = activeId
+    let baseMessages = messages
+
     if (text === '/help') {
-      const newMsgs = [...messages, { role: 'bot' as const, text: HELP_MSG }]
-      setMessages(newMsgs)
-      if (activeId) updateConversation(activeId, newMsgs)
+      if (!currentId) {
+        currentId = createConversation([], 'Ayuda')
+        baseMessages = []
+      }
+      const newMsgs = [...baseMessages, { role: 'bot' as const, text: HELP_MSG }]
+      updateConversation(currentId, newMsgs)
       return
     }
 
-    let currentId = activeId
     if (!currentId) {
-      const newConv: Conversation = {
-        id: generateId(),
-        title: getTitleFromMessages([{ role: 'user', text }]),
-        messages: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      }
-      setConversations(prev => [newConv, ...prev])
-      currentId = newConv.id
-      setActiveId(currentId)
+      currentId = createConversation()
+      baseMessages = []
     }
+
+    if (pendingIds.includes(currentId)) return
 
     const userMsg: Message = { role: 'user', text }
-    const withUser = [...messages, userMsg]
-    setMessages(withUser)
+    const withUser = [...baseMessages, userMsg]
+    updateConversation(currentId, withUser)
 
-    setThinking(true)
+    setPendingIds(prev => prev.includes(currentId) ? prev : [...prev, currentId])
     const cmd = CMD_MAP[text]
+    const params = new URLSearchParams({
+      msg: cmd || text,
+      conversation_id: currentId,
+    })
 
     try {
-      const res = await fetch(`/api/completion?msg=${encodeURIComponent(cmd || text)}`)
+      const res = await fetch(`/api/completion?${params.toString()}`)
       const data: CompletionResponse = await res.json()
       const botMsg: Message = { role: 'bot', text: data.completion }
-      const withBot = [...withUser, botMsg]
-      setMessages(withBot)
-      if (currentId) updateConversation(currentId, withBot)
+      updateConversation(currentId, [...withUser, botMsg])
     } catch {
       const errorMsg: Message = { role: 'bot', text: 'Error al conectar con el servidor.' }
-      const withError = [...withUser, errorMsg]
-      setMessages(withError)
-      if (currentId) updateConversation(currentId, withError)
+      updateConversation(currentId, [...withUser, errorMsg])
+    } finally {
+      setPendingIds(prev => prev.filter(id => id !== currentId))
     }
-
-    setThinking(false)
   }
 
   return (
-    <div className="app-layout">
+    <div className={`app-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       <Sidebar
         conversations={conversations}
         activeId={activeId}
         onSelect={handleSelectConversation}
         onNew={handleNewConversation}
         onDelete={handleDeleteConversation}
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
+        open={mobileSidebarOpen}
+        collapsed={sidebarCollapsed}
+        onClose={() => setMobileSidebarOpen(false)}
       />
       <div className="chat-container">
         <header className="chat-header">
           <button
             className="menu-btn"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            aria-label="Abrir historial"
+            onClick={toggleSidebar}
+            aria-label={sidebarCollapsed ? 'Expandir historial' : 'Contraer historial'}
+            aria-expanded={!sidebarCollapsed}
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="3" y1="12" x2="21" y2="12"/>

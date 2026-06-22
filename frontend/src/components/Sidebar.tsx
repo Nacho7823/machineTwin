@@ -1,17 +1,17 @@
 import type { SidebarProps } from '../types'
 
-export function Sidebar({ conversations, activeId, onSelect, onNew, onDelete, open, onClose }: SidebarProps) {
+export function Sidebar({ conversations, activeId, onSelect, onNew, onDelete, open, collapsed, onClose }: SidebarProps) {
   return (
     <>
       {open && <div className="sidebar-overlay" onClick={onClose} />}
-      <aside className={`sidebar ${open ? 'sidebar--open' : ''}`}>
+      <aside className={`sidebar ${open ? 'sidebar--open' : ''}`} aria-label="Historial de conversaciones">
         <div className="sidebar-header">
-          <button className="sidebar-new-btn" onClick={onNew}>
+          <button className="sidebar-new-btn" onClick={onNew} title="Nueva conversacion" aria-label="Nueva conversacion">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"/>
               <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
-            Nueva conversacion
+            <span>Nueva conversacion</span>
           </button>
         </div>
         <div className="sidebar-list">
@@ -20,6 +20,7 @@ export function Sidebar({ conversations, activeId, onSelect, onNew, onDelete, op
               key={conv.id}
               className={`sidebar-item ${conv.id === activeId ? 'sidebar-item--active' : ''}`}
               onClick={() => onSelect(conv.id)}
+              title={collapsed ? conv.title : undefined}
             >
               <div className="sidebar-item-content">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sidebar-item-icon">

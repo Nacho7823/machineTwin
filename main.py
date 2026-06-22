@@ -46,20 +46,25 @@ TOOLS = {
 class MachineTwin:
     def __init__(self):
         self._agent = LLMAgent(tools=TOOLS)
-        self._history = []
+        self._histories = {}
 
     @property
     def ready(self) -> bool:
         return self._agent.ready
 
-    def process(self, query: str) -> str:
+    def _get_history(self, conversation_id: str | None):
+        key = conversation_id or "default"
+        return self._histories.setdefault(key, [])
+
+    def process(self, query: str, conversation_id: str | None = None) -> str:
         if not self._agent.ready:
             return "Error: No se configuro la API key (LLM_API_KEY)."
 
         logger.info(f"Procesando consulta del usuario: '{query}'")
+        history = self._get_history(conversation_id)
         messages = [
             SystemMessage(content=SYSTEM_PROMPT),
-            *self._history,
+            *history,
             HumanMessage(content=query),
         ]
 
@@ -67,17 +72,20 @@ class MachineTwin:
             response = self._agent.invoke(messages)
             answer = response.content
             logger.info("Respuesta generada exitosamente.")
-            self._history.append(HumanMessage(content=query))
-            self._history.append(response)
-            if len(self._history) > 20:
-                self._history = self._history[-20:]
+            history.append(HumanMessage(content=query))
+            history.append(response)
+            if len(history) > 20:
+                history[:] = history[-20:]
             return answer
         except Exception as e:
             logger.error(f"Error al procesar consulta: {e}")
             return f"Error al consultar el LLM: {e}"
 
-    def clear_history(self):
-        self._history.clear()
+    def clear_history(self, conversation_id: str | None = None):
+        if conversation_id:
+            self._histories.pop(conversation_id, None)
+        else:
+            self._histories.clear()
 
 
 
@@ -90,8 +98,8 @@ if __name__ == "__main__":
 
     twin = MachineTwin()
 
-    def handle_completion(msg: str):
-        return twin.process(msg)
+    def handle_completion(msg: str, conversation_id: str | None = None):
+        return twin.process(msg, conversation_id=conversation_id)
 
     mode = sys.argv[1] if len(sys.argv) > 1 else "terminal"
 
@@ -106,4 +114,3 @@ if __name__ == "__main__":
     ui.set_on_completion(handle_completion)
     ui.set_on_clear_history(twin.clear_history)
     ui.start()
-
