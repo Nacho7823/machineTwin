@@ -12,8 +12,6 @@ Respondés en español, de forma concisa y técnica.
 Si no tenés datos suficientes, especificaciones o documentación técnica, 
 utilizá las herramientas disponibles para buscar la información necesaria. 
 Si no encontrás información suficiente, indícalo de forma clara.
-
-Al usar la herramienta ejecutar_codigo, las variables machine_current (dict), machine_history (pd.DataFrame) y pd (pandas) ya están disponibles. NO es necesario cargar archivos ni incrustar datos en el código.
 """
 
 
@@ -25,7 +23,6 @@ TOOLS = {
     "analizar_tendencia": tools.analizar_tendencia,
     "listar_archivos_datos": tools.listar_archivos_datos,
     "leer_archivo_datos": tools.leer_archivo_datos,
-    "ejecutar_codigo": tools.ejecutar_codigo,
 }
 
 
@@ -91,7 +88,6 @@ if __name__ == "__main__":
 
     ui.set_on_completion(handle_completion)
     ui.start()
-
 
 
 
