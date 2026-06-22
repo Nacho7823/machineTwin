@@ -1,10 +1,30 @@
-from log import get_logger
+from uuid import uuid4
+
+from log import get_logger, log_trace_event
 from config import LLM_API_KEY, LLM_MODEL, LLM_BASE_URL
 
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import ToolMessage
 
 logger = get_logger(__name__)
+
+
+def _message_to_dict(message) -> dict:
+    data = {
+        "type": getattr(message, "type", type(message).__name__),
+        "content": getattr(message, "content", ""),
+    }
+    tool_calls = getattr(message, "tool_calls", None)
+    if tool_calls:
+        data["tool_calls"] = tool_calls
+    tool_call_id = getattr(message, "tool_call_id", None)
+    if tool_call_id:
+        data["tool_call_id"] = tool_call_id
+    return data
+
+
+def _messages_to_dicts(messages: list) -> list[dict]:
+    return [_message_to_dict(message) for message in messages]
 
 
 class LLMAgent:
@@ -24,7 +44,21 @@ class LLMAgent:
         return self._agent is not None
 
     def invoke(self, messages: list):
+        trace_id = str(uuid4())
+        step = 0
+        log_trace_event({
+            "trace_id": trace_id,
+            "event": "llm_request",
+            "step": step,
+            "messages": _messages_to_dicts(messages),
+        })
         response = self._agent.invoke(messages)
+        log_trace_event({
+            "trace_id": trace_id,
+            "event": "llm_response",
+            "step": step,
+            "response": _message_to_dict(response),
+        })
 
         while response.tool_calls:
             messages.append(response)
@@ -40,7 +74,28 @@ class LLMAgent:
                 else:
                     tool_output = f"Error: Herramienta '{tool_name}' no encontrada."
                     logger.warning(f"Intento de usar herramienta no existente '{tool_name}'")
+                log_trace_event({
+                    "trace_id": trace_id,
+                    "event": "tool_call",
+                    "step": step,
+                    "tool": tool_name,
+                    "input": tool_args,
+                    "output": str(tool_output),
+                })
                 messages.append(ToolMessage(content=str(tool_output), tool_call_id=tool_id))
+            step += 1
+            log_trace_event({
+                "trace_id": trace_id,
+                "event": "llm_request",
+                "step": step,
+                "messages": _messages_to_dicts(messages),
+            })
             response = self._agent.invoke(messages)
+            log_trace_event({
+                "trace_id": trace_id,
+                "event": "llm_response",
+                "step": step,
+                "response": _message_to_dict(response),
+            })
 
         return response
