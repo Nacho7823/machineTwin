@@ -8,6 +8,23 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
+
+## Configuracion del LLM
+
+La aplicacion usa un cliente compatible con OpenAI mediante LangChain. Por defecto se utiliza Kilo AI:
+
+- `LLM_BASE_URL=https://api.kilo.ai/api/gateway/`
+- `LLM_MODEL=stepfun/step-3.7-flash:free`
+- `LLM_API_KEY=` puede quedar vacio en esta configuracion.
+
+Para usar la configuracion por defecto:
+
+```bash
+cp .env.example .env
+```
+
+Si se utiliza otro proveedor compatible con OpenAI, se deben modificar estas variables en `.env`.
+
 ## Correr
 
 Iniciar simulador con:
@@ -51,7 +68,6 @@ La app se divide en:
 **main.py:** Donde esta el agente  
 **rag:** Carpeta de implementacion del rag  
 **tools.py:** Herramientas del agente. tool de rag y de acceso a archivos
-
 
 
 
