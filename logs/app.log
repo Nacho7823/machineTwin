@@ -364,3 +364,133 @@ if len(machine_history) >= 20:
 2026-06-22 17:14:32,863 - llm - INFO - El agente decidio llamar a la herramienta 'leer_archivo_datos' con argumentos: {'filename': 'machine_current.json'}
 2026-06-22 17:14:32,864 - tools - INFO - Se ejecuto la herramienta 'leer_archivo_datos' para el archivo: 'machine_current.json'
 2026-06-22 17:14:32,865 - __main__ - ERROR - Error al procesar consulta: 'utf-8' codec can't decode byte 0xb0 in position 222: invalid start byte
+2026-06-22 17:15:56,246 - __main__ - INFO - Procesando consulta del usuario: '¿cómo está funcionando el compresor de tornillo?'
+2026-06-22 17:16:01,076 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 17:16:01,078 - llm - INFO - El agente decidio llamar a la herramienta 'ejecutar_codigo' con argumentos: {'code': '# Estado actual del compresor de tornillo\nprint("=== ESTADO ACTUAL ===")\nprint(f"ID: {machine_current.get(\'machine_id\', \'N/A\')}")\nprint(f"Nombre: {machine_current.get(\'machine_name\', \'N/A\')}")\nprint(f"Estado: {machine_current.get(\'status\', \'N/A\')}")\nprint("\\nVariables actuales:")\nfor var_name, var_data in machine_current.get(\'current_variables\', {}).items():\n    print(f"  {var_name}: {var_data.get(\'value\', \'N/A\')} {var_data.get(\'unit\', \'\')}")\n\nprint("\\n=== ANÁLISIS HISTÓRICO ===")\nif not machine_history.empty:\n    print(f"Registros históricos: {len(machine_history)}")\n    print("\\nEstadísticas de variables clave:")\n    stats_cols = [\'temperature\', \'vibration\', \'pressure\', \'flow_rate\', \'power_consumption\', \'efficiency\']\n    for col in stats_cols:\n        if col in machine_history.columns:\n            print(f"\\n{col.upper()}:")\n            print(f"  Min: {machine_history[col].min():.2f}")\n            print(f"  Max: {machine_history[col].max():.2f}")\n            print(f"  Promedio: {machine_history[col].mean():.2f}")\n            print(f"  Desv. Est.: {machine_history[col].std():.2f}")\n    \n    # Detectar valores atípicos (más de 2 desviaciones estándar)\n    print("\\n=== POSIBLES ANOMALÍAS ===")\n    for col in stats_cols:\n        if col in machine_history.columns:\n            mean = machine_history[col].mean()\n            std = machine_history[col].std()\n            current_val = machine_current.get(\'current_variables\', {}).get(col, {}).get(\'value\')\n            if current_val is not None and std > 0:\n                z_score = (current_val - mean) / std\n                if abs(z_score) > 2:\n                    print(f"  {col}: Valor actual {current_val:.2f} está {z_score:.2f} desviaciones de la media histórica")\nelse:\n    print("No hay datos históricos disponibles.")'}
+2026-06-22 17:16:01,078 - tools - INFO - Se ejecuto la herramienta 'ejecutar_codigo' con el siguiente codigo: # Estado actual del compresor de tornillo
+print("=== ESTADO ACTUAL ===")
+print(f"ID: {machine_current.get('machine_id', 'N/A')}")
+print(f"Nombre: {machine_current.get('machine_name', 'N/A')}")
+print(f"Estado: {machine_current.get('status', 'N/A')}")
+print("\nVariables actuales:")
+for var_name, var_data in machine_current.get('current_variables', {}).items():
+    print(f"  {var_name}: {var_data.get('value', 'N/A')} {var_data.get('unit', '')}")
+
+print("\n=== ANÁLISIS HISTÓRICO ===")
+if not machine_history.empty:
+    print(f"Registros históricos: {len(machine_history)}")
+    print("\nEstadísticas de variables clave:")
+    stats_cols = ['temperature', 'vibration', 'pressure', 'flow_rate', 'power_consumption', 'efficiency']
+    for col in stats_cols:
+        if col in machine_history.columns:
+            print(f"\n{col.upper()}:")
+            print(f"  Min: {machine_history[col].min():.2f}")
+            print(f"  Max: {machine_history[col].max():.2f}")
+            print(f"  Promedio: {machine_history[col].mean():.2f}")
+            print(f"  Desv. Est.: {machine_history[col].std():.2f}")
+    
+    # Detectar valores atípicos (más de 2 desviaciones estándar)
+    print("\n=== POSIBLES ANOMALÍAS ===")
+    for col in stats_cols:
+        if col in machine_history.columns:
+            mean = machine_history[col].mean()
+            std = machine_history[col].std()
+            current_val = machine_current.get('current_variables', {}).get(col, {}).get('value')
+            if current_val is not None and std > 0:
+                z_score = (current_val - mean) / std
+                if abs(z_score) > 2:
+                    print(f"  {col}: Valor actual {current_val:.2f} está {z_score:.2f} desviaciones de la media histórica")
+else:
+    print("No hay datos históricos disponibles.")
+2026-06-22 17:16:01,092 - tools - ERROR - Error al ejecutar la herramienta 'ejecutar_codigo': 'utf-8' codec can't decode byte 0xb0 in position 222: invalid start byte
+2026-06-22 17:16:05,441 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 17:16:05,443 - llm - INFO - El agente decidio llamar a la herramienta 'ejecutar_codigo' con argumentos: {'code': '# Estado actual del compresor de tornillo\nprint("=== ESTADO ACTUAL ===")\nprint(f"ID: {machine_current.get(\'machine_id\', \'N/A\')}")\nprint(f"Nombre: {machine_current.get(\'machine_name\', \'N/A\')}")\nprint(f"Estado: {machine_current.get(\'status\', \'N/A\')}")\nprint("\\nVariables actuales:")\nfor var_name, var_data in machine_current.get(\'current_variables\', {}).items():\n    print(f"  {var_name}: {var_data.get(\'value\', \'N/A\')} {var_data.get(\'unit\', \'\')}")\n\nprint("\\n=== ANALISIS HISTORICO ===")\nif not machine_history.empty:\n    print(f"Registros historicos: {len(machine_history)}")\n    print("\\nEstadisticas de variables clave:")\n    stats_cols = [\'temperature\', \'vibration\', \'pressure\', \'flow_rate\', \'power_consumption\', \'efficiency\']\n    for col in stats_cols:\n        if col in machine_history.columns:\n            print(f"\\n{col.upper()}:")\n            print(f"  Min: {machine_history[col].min():.2f}")\n            print(f"  Max: {machine_history[col].max():.2f}")\n            print(f"  Promedio: {machine_history[col].mean():.2f}")\n            print(f"  Desv. Est.: {machine_history[col].std():.2f}")\n    \n    # Detectar valores atipicos (mas de 2 desviaciones estandar)\n    print("\\n=== POSIBLES ANOMALIAS ===")\n    for col in stats_cols:\n        if col in machine_history.columns:\n            mean = machine_history[col].mean()\n            std = machine_history[col].std()\n            current_val = machine_current.get(\'current_variables\', {}).get(col, {}).get(\'value\')\n            if current_val is not None and std > 0:\n                z_score = (current_val - mean) / std\n                if abs(z_score) > 2:\n                    print(f"  {col}: Valor actual {current_val:.2f} esta {z_score:.2f} desviaciones de la media historica")\nelse:\n    print("No hay datos historicos disponibles.")'}
+2026-06-22 17:16:05,443 - tools - INFO - Se ejecuto la herramienta 'ejecutar_codigo' con el siguiente codigo: # Estado actual del compresor de tornillo
+print("=== ESTADO ACTUAL ===")
+print(f"ID: {machine_current.get('machine_id', 'N/A')}")
+print(f"Nombre: {machine_current.get('machine_name', 'N/A')}")
+print(f"Estado: {machine_current.get('status', 'N/A')}")
+print("\nVariables actuales:")
+for var_name, var_data in machine_current.get('current_variables', {}).items():
+    print(f"  {var_name}: {var_data.get('value', 'N/A')} {var_data.get('unit', '')}")
+
+print("\n=== ANALISIS HISTORICO ===")
+if not machine_history.empty:
+    print(f"Registros historicos: {len(machine_history)}")
+    print("\nEstadisticas de variables clave:")
+    stats_cols = ['temperature', 'vibration', 'pressure', 'flow_rate', 'power_consumption', 'efficiency']
+    for col in stats_cols:
+        if col in machine_history.columns:
+            print(f"\n{col.upper()}:")
+            print(f"  Min: {machine_history[col].min():.2f}")
+            print(f"  Max: {machine_history[col].max():.2f}")
+            print(f"  Promedio: {machine_history[col].mean():.2f}")
+            print(f"  Desv. Est.: {machine_history[col].std():.2f}")
+    
+    # Detectar valores atipicos (mas de 2 desviaciones estandar)
+    print("\n=== POSIBLES ANOMALIAS ===")
+    for col in stats_cols:
+        if col in machine_history.columns:
+            mean = machine_history[col].mean()
+            std = machine_history[col].std()
+            current_val = machine_current.get('current_variables', {}).get(col, {}).get('value')
+            if current_val is not None and std > 0:
+                z_score = (current_val - mean) / std
+                if abs(z_score) > 2:
+                    print(f"  {col}: Valor actual {current_val:.2f} esta {z_score:.2f} desviaciones de la media historica")
+else:
+    print("No hay datos historicos disponibles.")
+2026-06-22 17:16:05,482 - tools - ERROR - Error al ejecutar la herramienta 'ejecutar_codigo': 'utf-8' codec can't decode byte 0xb0 in position 221: invalid start byte
+2026-06-22 17:16:08,823 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 17:16:08,826 - llm - INFO - El agente decidio llamar a la herramienta 'ejecutar_codigo' con argumentos: {'code': 'import sys\nprint("Python version:", sys.version)\nprint("Pandas version:", pd.__version__)\nprint("\\nMachine current keys:", list(machine_current.keys()) if machine_current else "Empty")\nprint("\\nMachine history columns:", list(machine_history.columns) if not machine_history.empty else "Empty")\nprint("\\nMachine history shape:", machine_history.shape if not machine_history.empty else "Empty")'}
+2026-06-22 17:16:08,827 - tools - INFO - Se ejecuto la herramienta 'ejecutar_codigo' con el siguiente codigo: import sys
+print("Python version:", sys.version)
+print("Pandas version:", pd.__version__)
+print("\nMachine current keys:", list(machine_current.keys()) if machine_current else "Empty")
+print("\nMachine history columns:", list(machine_history.columns) if not machine_history.empty else "Empty")
+print("\nMachine history shape:", machine_history.shape if not machine_history.empty else "Empty")
+2026-06-22 17:16:08,841 - tools - ERROR - Error al ejecutar la herramienta 'ejecutar_codigo': 'utf-8' codec can't decode byte 0xb0 in position 222: invalid start byte
+2026-06-22 17:16:17,732 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 17:16:17,734 - __main__ - INFO - Respuesta generada exitosamente.
+2026-06-22 18:12:48,164 - __main__ - INFO - Procesando consulta del usuario: '¿cómo está funcionando el Compresor de Tornillo C-300?'
+2026-06-22 18:12:51,649 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 18:12:51,651 - llm - INFO - El agente decidio llamar a la herramienta 'consultar_documentacion' con argumentos: {'q': 'Compresor de Tornillo C-300 especificaciones parámetros normales funcionamiento'}
+2026-06-22 18:12:51,652 - tools - INFO - Se ejecuto la herramienta 'consultar_documentacion' con query: 'Compresor de Tornillo C-300 especificaciones parámetros normales funcionamiento'
+2026-06-22 18:12:51,652 - rag.rag - INFO - Realizando consulta RAG: 'Compresor de Tornillo C-300 especificaciones parámetros normales funcionamiento' con k=3
+2026-06-22 18:12:51,713 - rag.rag - INFO - Consulta RAG exitosa. Se recuperaron 3 fragmentos relevantes.
+2026-06-22 18:12:51,713 - tools - INFO - Herramienta 'consultar_documentacion' devolvio un resultado exitoso (longitud: 1765).
+2026-06-22 18:12:54,867 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 18:12:54,869 - __main__ - INFO - Respuesta generada exitosamente.
+2026-06-22 18:17:24,187 - __main__ - INFO - Procesando consulta del usuario: '¿hay problemas en Motor Eléctrico Industrial M-200?'
+2026-06-22 18:17:31,998 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 18:17:31,999 - llm - INFO - El agente decidio llamar a la herramienta 'consultar_documentacion' con argumentos: {'q': 'Motor Eléctrico Industrial M-200 especificaciones parámetros operativos'}
+2026-06-22 18:17:32,001 - tools - INFO - Se ejecuto la herramienta 'consultar_documentacion' con query: 'Motor Eléctrico Industrial M-200 especificaciones parámetros operativos'
+2026-06-22 18:17:32,001 - rag.rag - INFO - Realizando consulta RAG: 'Motor Eléctrico Industrial M-200 especificaciones parámetros operativos' con k=3
+2026-06-22 18:17:32,044 - rag.rag - INFO - Consulta RAG exitosa. Se recuperaron 3 fragmentos relevantes.
+2026-06-22 18:17:32,044 - tools - INFO - Herramienta 'consultar_documentacion' devolvio un resultado exitoso (longitud: 891).
+2026-06-22 18:17:34,999 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 18:17:35,000 - llm - INFO - El agente decidio llamar a la herramienta 'ejecutar_codigo' con argumentos: {'code': 'print("machine_current:", machine_current)\nprint("\\nColumnas de machine_history:", machine_history.columns.tolist())\nprint("\\nDatos disponibles en machine_history:")\nprint(machine_history.head())'}
+2026-06-22 18:17:35,001 - tools - INFO - Se ejecuto la herramienta 'ejecutar_codigo' con el siguiente codigo: print("machine_current:", machine_current)
+print("\nColumnas de machine_history:", machine_history.columns.tolist())
+print("\nDatos disponibles en machine_history:")
+print(machine_history.head())
+2026-06-22 18:17:35,017 - tools - ERROR - Error al ejecutar la herramienta 'ejecutar_codigo': 'utf-8' codec can't decode byte 0xb0 in position 222: invalid start byte
+2026-06-22 18:17:37,616 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 18:17:37,617 - llm - INFO - El agente decidio llamar a la herramienta 'listar_archivos_datos' con argumentos: {}
+2026-06-22 18:17:37,618 - tools - INFO - Se ejecuto la herramienta 'listar_archivos_datos'
+2026-06-22 18:17:41,084 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 18:17:41,085 - llm - INFO - El agente decidio llamar a la herramienta 'leer_archivo_datos' con argumentos: {'filename': 'machine_current.json'}
+2026-06-22 18:17:41,086 - tools - INFO - Se ejecuto la herramienta 'leer_archivo_datos' para el archivo: 'machine_current.json'
+2026-06-22 18:17:41,098 - __main__ - ERROR - Error al procesar consulta: 'utf-8' codec can't decode byte 0xb0 in position 222: invalid start byte
+2026-06-22 18:18:04,090 - __main__ - INFO - Procesando consulta del usuario: '¿cómo está funcionando el Torre de Enfriamiento Industrial T-100?'
+2026-06-22 18:18:06,468 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 18:18:06,470 - llm - INFO - El agente decidio llamar a la herramienta 'consultar_documentacion' con argumentos: {'q': 'Torre de Enfriamiento Industrial T-100 especificaciones funcionamiento'}
+2026-06-22 18:18:06,471 - tools - INFO - Se ejecuto la herramienta 'consultar_documentacion' con query: 'Torre de Enfriamiento Industrial T-100 especificaciones funcionamiento'
+2026-06-22 18:18:06,471 - rag.rag - INFO - Realizando consulta RAG: 'Torre de Enfriamiento Industrial T-100 especificaciones funcionamiento' con k=3
+2026-06-22 18:18:06,504 - rag.rag - INFO - Consulta RAG exitosa. Se recuperaron 3 fragmentos relevantes.
+2026-06-22 18:18:06,504 - tools - INFO - Herramienta 'consultar_documentacion' devolvio un resultado exitoso (longitud: 1778).
+2026-06-22 18:18:11,497 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 18:18:11,499 - __main__ - INFO - Respuesta generada exitosamente.
+2026-06-22 18:21:25,647 - __main__ - INFO - Procesando consulta del usuario: '¿qué debería hacer con la alta vibracion y el consumo alto?'
+2026-06-22 18:21:34,836 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 18:21:34,837 - __main__ - INFO - Respuesta generada exitosamente.
