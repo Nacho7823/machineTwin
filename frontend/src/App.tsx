@@ -8,12 +8,12 @@ import './App.css'
 const STORAGE_KEY = 'machinetwin_conversations'
 
 const CMD_MAP: Record<string, string> = {
-  '/status': 'Dame el estado actual de la maquina.',
-  '/summary': 'Dame un resumen general de la maquina con tendencias y anomalias.',
-  '/anomalies': 'Detecta anomalias en las variables de la maquina en las ultimas 24 horas.',
-  '/events': 'Muestra los eventos recientes de la maquina de los ultimos 7 dias.',
+  '/status': 'Dame el estado actual de las maquinas.',
+  '/summary': 'Dame un resumen general de las maquinas con tendencias y anomalias.',
+  '/anomalies': 'Detecta anomalias en las variables de las maquinas en las ultimas 24 horas.',
+  '/events': 'Muestra los eventos recientes de las maquinas de los ultimos 7 dias.',
   '/recomend': 'Dame recomendaciones de operacion y mantenimiento.',
-  '/vars': 'Muestra el historial de las variables principales de la maquina en 24 horas.',
+  '/vars': 'Muestra el historial de las variables principales de las maquinas en 24 horas.',
 }
 
 const HELP_MSG = `Comandos:
