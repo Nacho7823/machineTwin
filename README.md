@@ -1,77 +1,149 @@
 # MachineTwin
-Un gemelo digital para maquinas
 
+MachineTwin es un gemelo digital para maquinas industriales. El proyecto incluye un simulador que genera datos operativos, un agente con tools para consultar documentacion y datos, una interfaz web y una interfaz de terminal.
 
-## Crear entorno
+## Instalacion
+
+Crear y activar un entorno virtual desde la raiz del proyecto:
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Configuracion del LLM
+Para preparar el frontend se necesita Node.js y npm:
 
-La aplicacion usa un cliente compatible con OpenAI mediante LangChain. Por defecto se utiliza Kilo AI:
+```bash
+cd frontend
+npm install
+npm run build
+cd ..
+```
 
-- `LLM_BASE_URL=https://api.kilo.ai/api/gateway/`
-- `LLM_MODEL=stepfun/step-3.7-flash:free`
-- `LLM_API_KEY=` puede quedar vacio en esta configuracion.
+## Configuracion de variables de entorno
 
-Para usar la configuracion por defecto:
+Copiar el archivo de ejemplo:
 
 ```bash
 cp .env.example .env
 ```
 
-Si se utiliza otro proveedor compatible con OpenAI, se deben modificar estas variables en `.env`.
+La aplicacion usa LangChain con un proveedor compatible con OpenAI. La configuracion por defecto usa Kilo AI:
 
-## Correr
-
-Iniciar simulador con:
-```bash
-python ./simulator/simulator.py 2
+```env
+LLM_BASE_URL=https://api.kilo.ai/api/gateway/
+LLM_MODEL=stepfun/step-3.7-flash:free
+LLM_API_KEY=
 ```
-El 2 es el intervalo
 
-El simulador crea datos en la carpeta data
- - **operation_history.csv:** historia de la maquina
- - **machine_current.json:** estado actual de la maquina
+En esta configuracion `LLM_API_KEY` puede quedar vacio.
 
+Para cambiar a otro proveedor compatible con OpenAI, editar `.env` y ajustar:
 
-En `docs-machines` se encuentran los documentos tecnicos de la maquina, usados por el rag
+- `LLM_BASE_URL`: URL base del proveedor.
+- `LLM_MODEL`: modelo a utilizar.
+- `LLM_API_KEY`: API key del proveedor, si corresponde.
 
+## Ejecucion del simulador
 
-### Correr la app
+El simulador debe correr en una terminal separada desde la raiz del proyecto:
 
-#### 1 Compilar el frontend
+```bash
+python simulator/main.py 2
+```
+
+El argumento `2` indica el intervalo de actualizacion en segundos. Mientras el simulador esta activo, actualiza los archivos de la carpeta `data/`.
+
+## Ejecucion de la aplicacion web
+
+La aplicacion web debe correr en otra terminal, separada del simulador.
+
+Primero compilar el frontend:
 
 ```bash
 cd frontend
-npm i
+npm install
 npm run build
+cd ..
 ```
-#### 2 Iniciar app
-Correr app
+
+Luego iniciar el backend web desde la raiz del proyecto:
+
 ```bash
 python main.py web
 ```
-La aplicacion expone la pagina web en localhost:8000. (se tiene que correr npm run build). 
 
-## Arquitectura
-La app se divide en:
+La app web queda disponible en:
 
-**frontend**: pagina web para el chatbot  
-**uiWen.py:** backend de la ui web(carpeta frontend)  
-**uiTerminal.py:** Interfaz grafica terminal  
-**utils.py:** Utilidades  
-**config.py:** Configuracion  
-**main.py:** Donde esta el agente  
-**rag:** Carpeta de implementacion del rag  
-**tools.py:** Herramientas del agente. tool de rag y de acceso a archivos
+```text
+http://localhost:8000
+```
 
+## Uso en terminal
 
+Tambien se puede usar el agente desde la terminal:
 
+```bash
+python main.py
+```
 
+Para que las consultas tengan datos actuales, mantener el simulador corriendo en otra terminal.
 
+## Datos generados
 
+El simulador y la aplicacion generan archivos locales para consultar estado, historiales, eventos y trazas:
 
+- `data/machine_current.json`: estado actual de la maquina y variables medidas.
+- `data/operation_history.csv`: historial de operacion de las variables.
+- `data/event_history.csv`: historial de eventos, alertas, fallas y mantenimientos.
+- `logs/app.log`: logs generales de la aplicacion.
+- `logs/traces.jsonl`: trazas de ejecucion del agente y sus pasos.
+
+Los documentos tecnicos usados por el RAG estan en `docs-machines/`.
+
+## Tools disponibles
+
+El agente expone estas tools publicas:
+
+- `consultar_documentacion`: consulta la documentacion tecnica con RAG.
+- `obtener_estado_actual`: devuelve el estado operativo actual y las variables medidas.
+- `consultar_eventos_recientes`: lista eventos recientes desde `data/event_history.csv`.
+- `detectar_fuera_de_limites`: detecta variables fuera de rangos optimos u operativos.
+- `analizar_tendencia`: analiza la tendencia reciente de una variable.
+- `listar_archivos_datos`: lista archivos disponibles en `data/`.
+- `leer_archivo_datos`: lee un archivo especifico de `data/`.
+
+## Observabilidad
+
+La aplicacion registra informacion de ejecucion en `logs/app.log`. Las trazas del agente se guardan en `logs/traces.jsonl`, en formato JSON Lines, para revisar interacciones, pasos y uso de tools.
+
+Estos archivos ayudan a evaluar el comportamiento durante las pruebas manuales y a diagnosticar errores de configuracion, datos faltantes o fallas de ejecucion.
+
+## Casos de prueba
+
+La guia de evaluacion manual esta en:
+
+```text
+docs/casos_prueba.md
+```
+
+Usar esos casos con el simulador corriendo y, segun corresponda, con la aplicacion web o la interfaz de terminal.
+
+## Estructura del proyecto
+
+- `main.py`: punto de entrada del agente, modo terminal y modo web.
+- `uiWeb.py`: backend de la interfaz web.
+- `uiTerminal.py`: interfaz de terminal.
+- `tools.py`: tools del agente para RAG, estado, eventos, analisis y archivos.
+- `llm.py`: configuracion del cliente LLM.
+- `config.py`: configuracion general de rutas y variables de entorno.
+- `log.py`: configuracion de logs.
+- `utils.py`: utilidades compartidas.
+- `frontend/`: interfaz web del chatbot.
+- `simulator/`: simulador de maquinas y configuraciones.
+- `rag/`: implementacion del RAG.
+- `docs-machines/`: documentacion tecnica de maquinas usada por el RAG.
+- `docs/casos_prueba.md`: casos de prueba manuales para la Entrega 2.
+- `data/`: archivos generados por el simulador.
+- `logs/`: logs y trazas generadas por la aplicacion.
