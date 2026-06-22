@@ -408,6 +408,38 @@
   border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) var(--radius-xs);
 }
 
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+
+.quick-action-chip {
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill);
+  background: var(--canvas);
+  color: var(--body);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.quick-action-chip:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--surface-soft);
+  color: var(--body-strong);
+}
+
+.quick-action-chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 /* Thinking indicator */
 .thinking-indicator {
   align-self: flex-start;

@@ -24,6 +24,16 @@ class UIRegressionTests(unittest.TestCase):
         self.assertIn("@media (hover: none)", css)
         self.assertIn(".sidebar-item-delete", css)
 
+    def test_alert_quick_actions_are_available(self):
+        app = (ROOT / "frontend/src/App.tsx").read_text(encoding="utf-8")
+        message_list = (ROOT / "frontend/src/components/MessageList.tsx").read_text(encoding="utf-8")
+
+        for label in ("Ver alertas", "Revisar anomalías", "Analizar tendencias", "Qué revisar"):
+            self.assertIn(label, app)
+
+        self.assertIn("shouldShowQuickActions", app)
+        self.assertIn("onQuickPrompt", message_list)
+
 
 if __name__ == "__main__":
     unittest.main()

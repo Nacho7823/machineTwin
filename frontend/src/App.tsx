@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { MessageList } from './components/MessageList'
 import { MessageInput } from './components/MessageInput'
 import { Sidebar } from './components/Sidebar'
-import type { Message, Conversation, CompletionResponse } from './types'
+import type { Message, Conversation, CompletionResponse, QuickAction } from './types'
 import './App.css'
 
 const STORAGE_KEY = 'machinetwin_conversations'
@@ -24,6 +24,42 @@ const HELP_MSG = `Comandos:
   /recomend    Recomendaciones
   /vars        Historial variables
   /clear       Limpiar chat`
+
+const QUICK_ACTIONS: QuickAction[] = [
+  {
+    label: 'Ver alertas',
+    prompt: 'Mostrame el detalle de las alertas activas no resueltas, incluyendo fecha, variable afectada, severidad y si requieren acción.',
+  },
+  {
+    label: 'Revisar anomalías',
+    prompt: 'Revisá si hay anomalías o variables fuera de la normalidad en la operación actual.',
+  },
+  {
+    label: 'Analizar tendencias',
+    prompt: 'Analizá las tendencias recientes de las variables relacionadas con las alertas o desviaciones detectadas.',
+  },
+  {
+    label: 'Qué revisar',
+    prompt: 'Indicame qué componentes o condiciones operativas debería revisar primero según las alertas y datos actuales.',
+  },
+]
+
+const QUICK_ACTION_TRIGGERS = [
+  'alerta',
+  'alertas',
+  'anomalia',
+  'anomalía',
+  'fuera de rango',
+  'desviacion',
+  'desviación',
+  'revisar',
+]
+
+function shouldShowQuickActions(message?: Message): boolean {
+  if (!message || message.role !== 'bot') return false
+  const text = message.text.toLocaleLowerCase('es')
+  return QUICK_ACTION_TRIGGERS.some(trigger => text.includes(trigger))
+}
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
@@ -68,6 +104,7 @@ export default function App() {
   const activeConversation = conversations.find(c => c.id === activeId)
   const messages = activeConversation?.messages ?? []
   const thinking = activeId ? pendingIds.includes(activeId) : false
+  const quickActions = shouldShowQuickActions(messages[messages.length - 1]) ? QUICK_ACTIONS : []
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -260,6 +297,8 @@ export default function App() {
           messages={messages}
           thinking={thinking}
           messagesEndRef={messagesEndRef}
+          quickActions={quickActions}
+          onQuickPrompt={sendMessage}
         />
 
         <MessageInput onSend={sendMessage} onClear={clearChat} disabled={thinking} />
