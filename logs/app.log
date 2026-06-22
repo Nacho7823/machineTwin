@@ -936,3 +936,102 @@ for param in ['temperature', 'vibration', 'pressure', 'flow_rate', 'power_consum
     print(f"{param}: Δ últimas 20 lecturas = {trend:+.2f}")
 2026-06-22 19:40:51,064 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
 2026-06-22 19:40:51,066 - __main__ - INFO - Respuesta generada exitosamente.
+2026-06-22 19:55:34,813 - __main__ - INFO - Procesando consulta del usuario: '¿cómo está funcionando cada una de las máquinas?'
+2026-06-22 19:55:39,651 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 19:55:39,653 - llm - INFO - El agente decidio llamar a la herramienta 'ejecutar_codigo' con argumentos: {'code': '\n# Obtener estado actual y estadísticas históricas de cada máquina\nfor machine_key, machine_data in machines.items():\n    current = machine_data["current"]\n    history = machine_data["history"]\n    \n    print(f"\\n=== {machine_key.upper().replace(\'_\', \' \')} ===")\n    print(f"Estado: OPERATIVO")\n    \n    # Parámetros actuales y estadísticas\n    for param, value in current.items():\n        if param in history.columns:\n            min_val = history[param].min()\n            max_val = history[param].max()\n            mean_val = history[param].mean()\n            print(f"- {param.capitalize()}: {value:.2f} (rango: {min_val:.2f}–{max_val:.2f} | media: {mean_val:.2f})")\n    \n    # Tendencia reciente (últimas 20 lecturas)\n    recent = history.tail(20)\n    if len(recent) > 1:\n        print("\\nTendencia reciente (últimas 20 lecturas):")\n        for param in current.keys():\n            if param in recent.columns and len(recent) > 1:\n                trend = recent[param].iloc[-1] - recent[param].iloc[0]\n                print(f"  {param.capitalize()}: {\'+\' if trend > 0 else \'\'}{trend:.2f}")\n'}
+2026-06-22 19:55:39,654 - tools - INFO - Se ejecuto la herramienta 'ejecutar_codigo' con el siguiente codigo: 
+# Obtener estado actual y estadísticas históricas de cada máquina
+for machine_key, machine_data in machines.items():
+    current = machine_data["current"]
+    history = machine_data["history"]
+    
+    print(f"\n=== {machine_key.upper().replace('_', ' ')} ===")
+    print(f"Estado: OPERATIVO")
+    
+    # Parámetros actuales y estadísticas
+    for param, value in current.items():
+        if param in history.columns:
+            min_val = history[param].min()
+            max_val = history[param].max()
+            mean_val = history[param].mean()
+            print(f"- {param.capitalize()}: {value:.2f} (rango: {min_val:.2f}–{max_val:.2f} | media: {mean_val:.2f})")
+    
+    # Tendencia reciente (últimas 20 lecturas)
+    recent = history.tail(20)
+    if len(recent) > 1:
+        print("\nTendencia reciente (últimas 20 lecturas):")
+        for param in current.keys():
+            if param in recent.columns and len(recent) > 1:
+                trend = recent[param].iloc[-1] - recent[param].iloc[0]
+                print(f"  {param.capitalize()}: {'+' if trend > 0 else ''}{trend:.2f}")
+
+2026-06-22 19:55:41,813 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 19:55:41,814 - llm - INFO - El agente decidio llamar a la herramienta 'ejecutar_codigo' con argumentos: {'code': '\n# Verificar estructura de datos\nprint("Claves disponibles:", machines.keys())\nfor key in machines.keys():\n    print(f"\\n{key}:")\n    print("  Current:", machines[key]["current"])\n    print("  History columns:", machines[key]["history"].columns.tolist())\n    print("  History shape:", machines[key]["history"].shape)\n'}
+2026-06-22 19:55:41,815 - tools - INFO - Se ejecuto la herramienta 'ejecutar_codigo' con el siguiente codigo: 
+# Verificar estructura de datos
+print("Claves disponibles:", machines.keys())
+for key in machines.keys():
+    print(f"\n{key}:")
+    print("  Current:", machines[key]["current"])
+    print("  History columns:", machines[key]["history"].columns.tolist())
+    print("  History shape:", machines[key]["history"].shape)
+
+2026-06-22 19:55:47,545 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 19:55:47,546 - llm - INFO - El agente decidio llamar a la herramienta 'ejecutar_codigo' con argumentos: {'code': '\n# Reporte completo de todas las máquinas\nfor machine_key, machine_data in machines.items():\n    current = machine_data["current"]\n    history = machine_data["history"]\n    machine_name = current["machine_name"]\n    machine_id = current["machine_id"]\n    status = current["status"]\n    \n    print(f"\\n{\'=\'*60}")\n    print(f"MÁQUINA: {machine_name} ({machine_id})")\n    print(f"ESTADO: {status.upper()}")\n    print(f"{\'=\'*60}")\n    \n    # Parámetros actuales con estadísticas históricas\n    print("\\n📊 PARÁMETROS ACTUALES:")\n    for param, data in current["current_variables"].items():\n        value = data["value"]\n        unit = data["unit"]\n        if param in history.columns:\n            min_val = history[param].min()\n            max_val = history[param].max()\n            mean_val = history[param].mean()\n            print(f"  • {param.replace(\'_\', \' \').capitalize()}: {value:.2f} {unit}")\n            print(f"    Rango histórico: {min_val:.2f}–{max_val:.2f} {unit} | Media: {mean_val:.2f} {unit}")\n    \n    # Tendencia reciente (últimas 20 lecturas o todas si hay menos)\n    recent = history.tail(min(20, len(history)))\n    if len(recent) > 1:\n        print("\\n📈 TENDENCIA RECIENTE (últimas lecturas):")\n        for param in current["current_variables"].keys():\n            if param in recent.columns:\n                trend = recent[param].iloc[-1] - recent[param].iloc[0]\n                direction = "↑" if trend > 0 else "↓" if trend < 0 else "→"\n                print(f"  • {param.replace(\'_\', \' \').capitalize()}: {direction} {abs(trend):.2f} {unit}")\n    \n    # Observaciones específicas\n    print("\\n🔍 OBSERVACIONES:")\n    for param, data in current["current_variables"].items():\n        if param in history.columns:\n            value = data["value"]\n            mean_val = history[param].mean()\n            deviation = ((value - mean_val) / mean_val) * 100\n            \n            if abs(deviation) > 5:\n                if deviation > 0:\n                    print(f"  • {param.replace(\'_\', \' \').capitalize()} está un {deviation:.1f}% POR ENCIMA de la media")\n                else:\n                    print(f"  • {param.replace(\'_\', \' \').capitalize()} está un {abs(deviation):.1f}% POR DEBAJO de la media")\n            else:\n                print(f"  • {param.replace(\'_\', \' \').capitalize()} dentro de rangos normales (±{abs(deviation):.1f}%)")\n'}
+2026-06-22 19:55:47,547 - tools - INFO - Se ejecuto la herramienta 'ejecutar_codigo' con el siguiente codigo: 
+# Reporte completo de todas las máquinas
+for machine_key, machine_data in machines.items():
+    current = machine_data["current"]
+    history = machine_data["history"]
+    machine_name = current["machine_name"]
+    machine_id = current["machine_id"]
+    status = current["status"]
+    
+    print(f"\n{'='*60}")
+    print(f"MÁQUINA: {machine_name} ({machine_id})")
+    print(f"ESTADO: {status.upper()}")
+    print(f"{'='*60}")
+    
+    # Parámetros actuales con estadísticas históricas
+    print("\n📊 PARÁMETROS ACTUALES:")
+    for param, data in current["current_variables"].items():
+        value = data["value"]
+        unit = data["unit"]
+        if param in history.columns:
+            min_val = history[param].min()
+            max_val = history[param].max()
+            mean_val = history[param].mean()
+            print(f"  • {param.replace('_', ' ').capitalize()}: {value:.2f} {unit}")
+            print(f"    Rango histórico: {min_val:.2f}–{max_val:.2f} {unit} | Media: {mean_val:.2f} {unit}")
+    
+    # Tendencia reciente (últimas 20 lecturas o todas si hay menos)
+    recent = history.tail(min(20, len(history)))
+    if len(recent) > 1:
+        print("\n📈 TENDENCIA RECIENTE (últimas lecturas):")
+        for param in current["current_variables"].keys():
+            if param in recent.columns:
+                trend = recent[param].iloc[-1] - recent[param].iloc[0]
+                direction = "↑" if trend > 0 else "↓" if trend < 0 else "→"
+                print(f"  • {param.replace('_', ' ').capitalize()}: {direction} {abs(trend):.2f} {unit}")
+    
+    # Observaciones específicas
+    print("\n🔍 OBSERVACIONES:")
+    for param, data in current["current_variables"].items():
+        if param in history.columns:
+            value = data["value"]
+            mean_val = history[param].mean()
+            deviation = ((value - mean_val) / mean_val) * 100
+            
+            if abs(deviation) > 5:
+                if deviation > 0:
+                    print(f"  • {param.replace('_', ' ').capitalize()} está un {deviation:.1f}% POR ENCIMA de la media")
+                else:
+                    print(f"  • {param.replace('_', ' ').capitalize()} está un {abs(deviation):.1f}% POR DEBAJO de la media")
+            else:
+                print(f"  • {param.replace('_', ' ').capitalize()} dentro de rangos normales (±{abs(deviation):.1f}%)")
+
+2026-06-22 19:55:54,708 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 19:55:54,710 - __main__ - INFO - Respuesta generada exitosamente.
+2026-06-22 19:56:41,432 - __main__ - INFO - Procesando consulta del usuario: '¿qué debo hacer en cada caso?'
+2026-06-22 19:56:50,526 - httpx - INFO - HTTP Request: POST https://api.kilo.ai/api/gateway/chat/completions "HTTP/1.1 200 OK"
+2026-06-22 19:56:50,527 - __main__ - INFO - Respuesta generada exitosamente.

@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 import pandas as pd
+from sklearn import base
 from machine_configs import MACHINE_CONFIGS, get_machine_config
 
 
@@ -27,6 +28,52 @@ class MachineSimulator:
         self._live_data: list = []
         self._max_live_points = 50
         self._set_machine("cooling_tower")
+        self.failure_config = {
+            "enabled": True,
+            "base_probability": 0.08,  # 8% por ciclo
+            "severity_weights": {
+            "low": 0.6,
+            "medium": 0.3,
+            "high": 0.1
+            }
+        }
+    def _random_severity(self):
+        severities = list(self.failure_config["severity_weights"].keys())
+        weights = list(self.failure_config["severity_weights"].values())
+        return random.choices(severities, weights=weights, k=1)[0]
+
+
+    def _random_variable(self):
+        return random.choice(list(self.variables.keys()))
+
+
+    def _failure_probability(self):
+        base = self.failure_config["base_probability"]
+
+        mode_factor = {
+            "normal": 1.0,
+            "degradation": 2.0,
+            "alert": 3.0,
+            "failure": 5.0,
+            "maintenance": 0.1
+            }
+        return min(1.0, base * mode_factor.get(self.mode, 1.0))
+
+
+    def _maybe_inject_random_failure(self):
+            if not self.failure_config["enabled"]:
+                return
+
+            if not self.variables:
+                return
+
+            if random.random() > self._failure_probability():
+                return
+
+            var = self._random_variable()
+            severity = self._random_severity()
+
+            self.inject_anomaly(var, severity)
 
     def _set_machine(self, machine_type: str):
         config = get_machine_config(machine_type)
@@ -155,22 +202,28 @@ class MachineSimulator:
         }
 
     async def _run(self):
-        try:
-            while self.running:
-                data_point = self._generate_data_point()
-                self._append_data_point(data_point)
-                self._update_current_json(data_point)
-                self._data_points_generated += 1
-                live_point = {"timestamp": data_point["timestamp"]}
-                for k in self.variables:
-                    if k in data_point:
-                        live_point[k] = data_point[k]
-                self._live_data.append(live_point)
-                if len(self._live_data) > self._max_live_points:
-                    self._live_data = self._live_data[-self._max_live_points:]
-                await asyncio.sleep(self.interval)
-        except asyncio.CancelledError:
-            pass
+        while self.running:
+            data_point = self._generate_data_point()
+
+            # 👇 NUEVO: fallas aleatorias
+            self._maybe_inject_random_failure()
+
+            self._append_data_point(data_point)
+            self._update_current_json(data_point)
+
+            self._data_points_generated += 1
+
+            live_point = {"timestamp": data_point["timestamp"]}
+            for k in self.variables:
+                if k in data_point:
+                    live_point[k] = data_point[k]
+
+            self._live_data.append(live_point)
+
+            if len(self._live_data) > self._max_live_points:
+                self._live_data = self._live_data[-self._max_live_points:]
+
+            await asyncio.sleep(self.interval)
 
     def _get_normal_value(self, var_name: str) -> float:
         var = self.variables[var_name]
