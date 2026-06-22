@@ -19,6 +19,10 @@ Al usar la herramienta ejecutar_codigo, las variables machine_current (dict), ma
 
 TOOLS = {
     "consultar_documentacion": tools.consultar_documentacion,
+    "obtener_estado_actual": tools.obtener_estado_actual,
+    "consultar_eventos_recientes": tools.consultar_eventos_recientes,
+    "detectar_fuera_de_limites": tools.detectar_fuera_de_limites,
+    "analizar_tendencia": tools.analizar_tendencia,
     "listar_archivos_datos": tools.listar_archivos_datos,
     "leer_archivo_datos": tools.leer_archivo_datos,
     "ejecutar_codigo": tools.ejecutar_codigo,
@@ -87,7 +91,6 @@ if __name__ == "__main__":
 
     ui.set_on_completion(handle_completion)
     ui.start()
-
 
 
 
