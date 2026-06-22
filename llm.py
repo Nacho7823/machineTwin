@@ -4,9 +4,11 @@ from log import get_logger, log_trace_event
 from config import LLM_API_KEY, LLM_MODEL, LLM_BASE_URL
 
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import ToolMessage
+from langchain_core.messages import AIMessage, ToolMessage
 
 logger = get_logger(__name__)
+MAX_REASONING_STEPS = 5
+REASONING_LIMIT_MESSAGE = "No pude completar el análisis porque se alcanzó el límite de pasos de razonamiento."
 
 
 def _message_to_dict(message) -> dict:
@@ -61,6 +63,18 @@ class LLMAgent:
         })
 
         while response.tool_calls:
+            if step >= MAX_REASONING_STEPS:
+                logger.warning("Se alcanzo el limite de pasos de razonamiento del agente.")
+                limit_response = AIMessage(content=REASONING_LIMIT_MESSAGE)
+                log_trace_event({
+                    "trace_id": trace_id,
+                    "event": "reasoning_limit_reached",
+                    "step": step,
+                    "max_steps": MAX_REASONING_STEPS,
+                    "response": _message_to_dict(limit_response),
+                })
+                return limit_response
+
             messages.append(response)
             for tool_call in response.tool_calls:
                 tool_name = tool_call["name"]
