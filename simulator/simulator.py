@@ -130,8 +130,12 @@ class MachineSimulator:
 
         current = {}
         if json_file.exists():
-            with open(json_file, "r") as f:
-                current = json.load(f)
+            try:
+                with open(json_file, "r", encoding="utf-8") as f:
+                    current = json.load(f)
+            except UnicodeDecodeError:
+                with open(json_file, "r", encoding="latin-1") as f:
+                    current = json.load(f)
 
         history = []
         if csv_file.exists():
@@ -251,8 +255,12 @@ class MachineSimulator:
     def _update_current_json(self, data_point: dict):
         json_file = self.data_dir / "machine_current.json"
         if json_file.exists():
-            with open(json_file, "r") as f:
-                machine_data = json.load(f)
+            try:
+                with open(json_file, "r", encoding="utf-8") as f:
+                    machine_data = json.load(f)
+            except UnicodeDecodeError:
+                with open(json_file, "r", encoding="latin-1") as f:
+                    machine_data = json.load(f)
         else:
             machine_data = {}
 
@@ -284,14 +292,18 @@ class MachineSimulator:
         else:
             machine_data["status"] = "operational"
 
-        with open(json_file, "w") as f:
+        with open(json_file, "w", encoding="utf-8") as f:
             json.dump(machine_data, f, indent=2, ensure_ascii=False)
 
     def _update_current_value(self, var_name: str, value: float):
         json_file = self.data_dir / "machine_current.json"
         if json_file.exists():
-            with open(json_file, "r") as f:
-                machine_data = json.load(f)
+            try:
+                with open(json_file, "r", encoding="utf-8") as f:
+                    machine_data = json.load(f)
+            except UnicodeDecodeError:
+                with open(json_file, "r", encoding="latin-1") as f:
+                    machine_data = json.load(f)
         else:
             machine_data = {"current_variables": {}}
 
@@ -304,7 +316,7 @@ class MachineSimulator:
             "unit": cfg.get("unit", ""),
         }
 
-        with open(json_file, "w") as f:
+        with open(json_file, "w", encoding="utf-8") as f:
             json.dump(machine_data, f, indent=2, ensure_ascii=False)
 
     def _inject_event(self, description: str, severity: str):
