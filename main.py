@@ -102,6 +102,6 @@ if __name__ == "__main__":
         ui: BaseUI = TUI()
 
     ui.set_on_completion(handle_completion)
+    ui.set_on_clear_history(twin.clear_history)
     ui.start()
-
 

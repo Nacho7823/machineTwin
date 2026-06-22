@@ -2,6 +2,7 @@ class BaseUI:
     def __init__(self):
         self._history = []
         self.onCompletition = None
+        self.onClearHistory = None
 
     def set_on_completion(self, callback):
         self.onCompletition = callback

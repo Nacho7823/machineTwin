@@ -117,14 +117,24 @@ export default function App() {
     }
   }
 
+  const clearChat = useCallback(async () => {
+    setMessages([])
+    if (activeId) {
+      updateConversation(activeId, [])
+    }
+
+    try {
+      await fetch('/api/clear', { method: 'POST' })
+    } catch {
+      // El chat visual se limpia aunque el backend no este disponible.
+    }
+  }, [activeId, updateConversation])
+
   const sendMessage = async (text: string) => {
     if (!text.trim() || thinking) return
 
     if (text === '/clear') {
-      setMessages([])
-      if (activeId) {
-        updateConversation(activeId, [])
-      }
+      await clearChat()
       return
     }
 
@@ -230,7 +240,7 @@ export default function App() {
           messagesEndRef={messagesEndRef}
         />
 
-        <MessageInput onSend={sendMessage} onClear={() => setMessages([])} disabled={thinking} />
+        <MessageInput onSend={sendMessage} onClear={clearChat} disabled={thinking} />
       </div>
     </div>
   )

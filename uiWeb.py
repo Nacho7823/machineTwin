@@ -28,6 +28,12 @@ def create_app(ui: WebUI = None):
             return {"completion": ui.onCompletition(msg)}
         return {"completion": f"Generated completion for the given prompt: {msg}"}
 
+    @app.post("/api/clear")
+    async def clear_history():
+        if ui and ui.onClearHistory:
+            ui.onClearHistory()
+        return {"ok": True}
+
     if DIST_DIR.exists():
         app.mount("/assets", StaticFiles(directory=str(DIST_DIR / "assets")), name="assets")
 
