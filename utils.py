@@ -2,6 +2,30 @@ import re
 from pathlib import Path
 
 
+def read_text_with_fallback(path: Path, encodings: tuple[str, ...] = ("utf-8", "latin-1")) -> str:
+    """Lee texto intentando codificaciones comunes para datos heredados."""
+    last_error = None
+    for encoding in encodings:
+        try:
+            return Path(path).read_text(encoding=encoding)
+        except UnicodeDecodeError as e:
+            last_error = e
+    raise last_error
+
+
+def read_csv_with_fallback(path: Path, encodings: tuple[str, ...] = ("utf-8", "latin-1"), **kwargs):
+    """Lee CSV intentando codificaciones comunes para datos heredados."""
+    import pandas as pd
+
+    last_error = None
+    for encoding in encodings:
+        try:
+            return pd.read_csv(path, encoding=encoding, **kwargs)
+        except UnicodeDecodeError as e:
+            last_error = e
+    raise last_error
+
+
 def chunk_por_oracion(texto: str) -> list[str]:
     """Chunking por oración (split en punto/exclamación/interrogación + espacio)."""
     oraciones = re.split(r'(?<=[.!?])\s+', texto)
@@ -20,7 +44,7 @@ def cargar_documentos(docs_dir: Path) -> list[dict]:
             content = ""
             if ext in (".md", ".txt"):
                 try:
-                    content = path.read_text(encoding="utf-8")
+                    content = read_text_with_fallback(path)
                 except Exception as e:
                     print(f"Error al leer {path.name}: {e}")
             elif ext == ".pdf":

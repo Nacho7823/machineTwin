@@ -7,6 +7,7 @@ import pandas as pd
 from log import get_logger
 from langchain_core.tools import tool
 from config import DATA_DIR
+from utils import read_csv_with_fallback, read_text_with_fallback
 from rag.nativeRAG import query
 from simulator.machine_configs import MACHINE_CONFIGS
 
@@ -17,11 +18,7 @@ def _leer_estado_actual() -> dict | None:
     current_path = DATA_DIR / "machine_current.json"
     if not current_path.exists():
         return None
-    raw = current_path.read_bytes()
-    try:
-        text = raw.decode("utf-8")
-    except UnicodeDecodeError:
-        text = raw.decode("latin-1")
+    text = read_text_with_fallback(current_path)
     return json.loads(text)
 
 
@@ -100,7 +97,7 @@ def consultar_eventos_recientes(limit: int = 10) -> str:
         return "No hay eventos registrados."
 
     try:
-        df = pd.read_csv(events_path)
+        df = read_csv_with_fallback(events_path)
     except Exception as e:
         return f"No se pudieron leer los eventos: {type(e).__name__}: {e}"
 
@@ -178,7 +175,7 @@ def analizar_tendencia(variable: str, ventana: int = 20) -> str:
         return "No hay historial de operacion disponible."
 
     try:
-        df = pd.read_csv(history_path)
+        df = read_csv_with_fallback(history_path)
     except Exception as e:
         return f"No se pudo leer el historial de operacion: {type(e).__name__}: {e}"
 
@@ -246,7 +243,8 @@ def leer_archivo_datos(filename: str) -> str:
 
     if not file_path.exists():
         return f"El archivo '{filename}' no existe."
-    return file_path.read_text(encoding='utf-8')
+
+    return read_text_with_fallback(file_path)
             
 
 @tool
@@ -301,13 +299,7 @@ Escribe SOLO el código analítico. Usa print() para mostrar resultados.
 
                 if current_file.exists():
                     try:
-                        machine_current = json.loads(
-                            current_file.read_text(encoding="utf-8")
-                        )
-                    except UnicodeDecodeError:
-                        machine_current = json.loads(
-                            current_file.read_text(encoding="latin-1")
-                        )
+                        machine_current = json.loads(read_text_with_fallback(current_file))
                     except Exception as e:
                         logger.warning(
                             f"Error leyendo {current_file}: {e}"
@@ -315,7 +307,7 @@ Escribe SOLO el código analítico. Usa print() para mostrar resultados.
 
                 if history_file.exists():
                     try:
-                        machine_history = pd.read_csv(history_file)
+                        machine_history = read_csv_with_fallback(history_file)
                     except Exception as e:
                         logger.warning(
                             f"Error leyendo {history_file}: {e}"

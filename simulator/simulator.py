@@ -9,6 +9,14 @@ import pandas as pd
 from sklearn import base
 from machine_configs import MACHINE_CONFIGS, get_machine_config
 
+try:
+    from utils import read_csv_with_fallback, read_text_with_fallback
+except ModuleNotFoundError:
+    import sys
+
+    sys.path.append(str(Path(__file__).resolve().parents[1]))
+    from utils import read_csv_with_fallback, read_text_with_fallback
+
 
 class MachineSimulator:
     def __init__(self, data_dir: Path):
@@ -177,21 +185,16 @@ class MachineSimulator:
 
         current = {}
         if json_file.exists():
-            try:
-                with open(json_file, "r", encoding="utf-8") as f:
-                    current = json.load(f)
-            except UnicodeDecodeError:
-                with open(json_file, "r", encoding="latin-1") as f:
-                    current = json.load(f)
+            current = json.loads(read_text_with_fallback(json_file))
 
         history = []
         if csv_file.exists():
-            df = pd.read_csv(csv_file)
+            df = read_csv_with_fallback(csv_file)
             history = df.tail(100).to_dict("records")
 
         events = []
         if events_file.exists():
-            df = pd.read_csv(events_file)
+            df = read_csv_with_fallback(events_file)
             events = df.tail(20).to_dict("records")
 
         return {
@@ -308,12 +311,7 @@ class MachineSimulator:
     def _update_current_json(self, data_point: dict):
         json_file = self.data_dir / "machine_current.json"
         if json_file.exists():
-            try:
-                with open(json_file, "r", encoding="utf-8") as f:
-                    machine_data = json.load(f)
-            except UnicodeDecodeError:
-                with open(json_file, "r", encoding="latin-1") as f:
-                    machine_data = json.load(f)
+            machine_data = json.loads(read_text_with_fallback(json_file))
         else:
             machine_data = {}
 
@@ -351,12 +349,7 @@ class MachineSimulator:
     def _update_current_value(self, var_name: str, value: float):
         json_file = self.data_dir / "machine_current.json"
         if json_file.exists():
-            try:
-                with open(json_file, "r", encoding="utf-8") as f:
-                    machine_data = json.load(f)
-            except UnicodeDecodeError:
-                with open(json_file, "r", encoding="latin-1") as f:
-                    machine_data = json.load(f)
+            machine_data = json.loads(read_text_with_fallback(json_file))
         else:
             machine_data = {"current_variables": {}}
 
