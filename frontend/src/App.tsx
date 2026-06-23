@@ -13,7 +13,7 @@ const CMD_MAP: Record<string, string> = {
   '/anomalies': 'Detecta anomalias en las variables de las maquinas en las ultimas 24 horas.',
   '/events': 'Muestra los eventos recientes de las maquinas de los ultimos 7 dias.',
   '/recomend': 'Dame recomendaciones de operacion y mantenimiento.',
-  '/vars': 'Muestra el historial de las variables principales de las maquinas en 24 horas.',
+  '/vars': 'Analiza las tendencias de las variables principales de las maquinas usando 50 muestras recientes.',
 }
 
 const HELP_MSG = `Comandos:
@@ -22,7 +22,7 @@ const HELP_MSG = `Comandos:
   /anomalies   Anomalias (24h)
   /events      Eventos (7 dias)
   /recomend    Recomendaciones
-  /vars        Historial variables
+  /vars        Tendencias variables
   /clear       Limpiar chat`
 
 const QUICK_ACTIONS: QuickAction[] = [
@@ -36,7 +36,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   },
   {
     label: 'Analizar tendencias',
-    prompt: 'Analizá las tendencias recientes de las variables relacionadas con las alertas o desviaciones detectadas.',
+    prompt: 'Analizá las tendencias recientes de las variables relacionadas con las alertas o desviaciones detectadas usando 50 muestras.',
   },
   {
     label: 'Qué revisar',

@@ -114,7 +114,7 @@ El agente expone estas tools publicas:
 - `obtener_estado_actual`: devuelve el estado operativo actual y las variables medidas de todas las maquinas detectadas.
 - `consultar_eventos_recientes`: lista eventos recientes combinados desde las maquinas detectadas.
 - `detectar_fuera_de_limites`: detecta variables fuera de rangos optimos u operativos por maquina.
-- `analizar_tendencia`: analiza la tendencia reciente de una variable por maquina cuando existe en su historial.
+- `analizar_tendencia`: analiza la tendencia reciente de una variable por maquina cuando existe en su historial. Usa 50 muestras por defecto y acepta una ventana solicitada hasta un maximo de 200 muestras.
 - `listar_archivos_datos`: lista archivos disponibles en `data/`.
 - `leer_archivo_datos`: lee un archivo especifico de `data/`.
 

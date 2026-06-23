@@ -4,6 +4,7 @@ import sys
 import tempfile
 import types
 import unittest
+from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
@@ -36,6 +37,15 @@ def _write_history(machine_dir: Path, temperature_a: float, temperature_b: float
     )
 
 
+def _write_history_values(machine_dir: Path, temperatures: list[float]):
+    start = datetime(2026, 1, 1)
+    rows = ["timestamp,temperature,vibration"]
+    for index, temperature in enumerate(temperatures):
+        timestamp = start + timedelta(minutes=index)
+        rows.append(f"{timestamp:%Y-%m-%d %H:%M:%S},{temperature},1.0")
+    (machine_dir / "operation_history.csv").write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+
 def _write_events(machine_dir: Path, event_id: str, description: str):
     (machine_dir / "event_history.csv").write_text(
         "event_id,timestamp,event_type,description,severity,resolved,technician\n"
@@ -49,6 +59,8 @@ class MultiMachineToolTests(unittest.TestCase):
 
     def _load_tools_with_temp_data(self, data_dir: Path):
         if self.__class__._tools_module is None:
+            import pandas  # noqa: F401
+
             fake_rag = types.SimpleNamespace(query=lambda _q: [])
             with patch.dict(sys.modules, {"rag.nativeRAG": fake_rag}):
                 self.__class__._tools_module = importlib.import_module("tools")
@@ -104,6 +116,20 @@ class MultiMachineToolTests(unittest.TestCase):
             self.assertIn("Evento compresor", eventos)
             self.assertNotIn("resuelto", eventos)
             self.assertNotIn("resolved", eventos)
+
+    def test_tendencia_uses_50_samples_by_default_and_caps_requested_window(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            data_dir = Path(tmpdir)
+            _write_current(data_dir / "cooling_tower", "T-100", "Torre T-100", "Enfriamiento", 42)
+            _write_history_values(data_dir / "cooling_tower", list(range(250)))
+
+            tools = self._load_tools_with_temp_data(data_dir)
+            default_window = tools.analizar_tendencia.invoke({"variable": "temperature"})
+            capped_window = tools.analizar_tendencia.invoke({"variable": "temperature", "ventana": 500})
+
+            self.assertIn("Cantidad de muestras: 50", default_window)
+            self.assertIn("Cantidad de muestras: 200", capped_window)
+            self.assertIn("maximo permitido de 200 muestras", capped_window)
 
     def test_limites_are_reported_per_machine_and_empty_data_is_clear(self):
         with tempfile.TemporaryDirectory() as tmpdir:

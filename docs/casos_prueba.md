@@ -35,7 +35,7 @@ Analiza la tendencia de temperatura de los ultimos registros.
 `analizar_tendencia`
 
 **Respuesta esperada:**
-El agente resume por maquina la cantidad de muestras, valor inicial, valor final, variacion y tendencia cuando la variable existe.
+El agente resume por maquina la cantidad de muestras, valor inicial, valor final, variacion y tendencia cuando la variable existe. Por defecto usa hasta 50 muestras recientes; si el usuario pide otra cantidad, respeta la ventana solicitada hasta un maximo de 200 muestras.
 
 **Respuesta observada:**
 

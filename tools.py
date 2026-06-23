@@ -12,6 +12,10 @@ from simulator.machine_configs import MACHINE_CONFIGS
 
 logger = get_logger(__name__)
 
+DEFAULT_TREND_WINDOW = 50
+MIN_TREND_WINDOW = 2
+MAX_TREND_WINDOW = 200
+
 
 def _leer_estado_actual() -> dict | None:
     current_path = DATA_DIR / "machine_current.json"
@@ -154,6 +158,19 @@ def _limitar_entero(value: int, minimo: int, maximo: int) -> int:
     return max(minimo, min(value, maximo))
 
 
+def _normalizar_ventana_tendencia(value: int) -> tuple[int, str | None]:
+    try:
+        requested = int(value)
+    except (TypeError, ValueError):
+        return DEFAULT_TREND_WINDOW, f"Ventana invalida. Se uso la ventana por defecto de {DEFAULT_TREND_WINDOW} muestras."
+
+    if requested < MIN_TREND_WINDOW:
+        return MIN_TREND_WINDOW, f"Ventana solicitada: {requested}. Se uso el minimo permitido de {MIN_TREND_WINDOW} muestras."
+    if requested > MAX_TREND_WINDOW:
+        return MAX_TREND_WINDOW, f"Ventana solicitada: {requested}. Se uso el maximo permitido de {MAX_TREND_WINDOW} muestras."
+    return requested, None
+
+
 
 @tool
 def consultar_documentacion(q: str) -> str:
@@ -278,8 +295,8 @@ def detectar_fuera_de_limites() -> str:
 
 
 @tool
-def analizar_tendencia(variable: str, ventana: int = 20) -> str:
-    """Analiza la tendencia reciente de una variable usando el historial de operacion de las maquinas."""
+def analizar_tendencia(variable: str, ventana: int = DEFAULT_TREND_WINDOW) -> str:
+    """Analiza la tendencia reciente de una variable. Usa 50 muestras por defecto y hasta 200."""
     logger.info(f"Se ejecuto la herramienta 'analizar_tendencia' con variable={variable}, ventana={ventana}")
     machines = _discover_machine_data()
     if not machines:
@@ -287,7 +304,7 @@ def analizar_tendencia(variable: str, ventana: int = 20) -> str:
 
     sections = []
     missing_variables = []
-    ventana = _limitar_entero(ventana, 2, 200)
+    ventana, window_note = _normalizar_ventana_tendencia(ventana)
     for machine in machines:
         history_path = machine["history_path"]
         if not history_path.exists():
@@ -311,6 +328,8 @@ def analizar_tendencia(variable: str, ventana: int = 20) -> str:
         sections.append(f"Maquina: {_machine_name(machine)}\n{_trend_for_series(series, variable)}")
 
     if sections:
+        if window_note:
+            return window_note + "\n\n" + "\n\n".join(sections)
         return "\n\n".join(sections)
     if missing_variables:
         return f"La variable '{variable}' no existe en los historiales revisados. Variables disponibles por maquina: " + "; ".join(missing_variables) + "."
