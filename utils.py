@@ -1,4 +1,5 @@
 import re
+import sys
 from pathlib import Path
 
 
@@ -15,7 +16,9 @@ def read_text_with_fallback(path: Path, encodings: tuple[str, ...] = ("utf-8", "
 
 def read_csv_with_fallback(path: Path, encodings: tuple[str, ...] = ("utf-8", "latin-1"), **kwargs):
     """Lee CSV intentando codificaciones comunes para datos heredados."""
-    import pandas as pd
+    pd = sys.modules.get("pandas")
+    if pd is None:
+        import pandas as pd
 
     last_error = None
     for encoding in encodings:

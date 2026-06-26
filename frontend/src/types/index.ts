@@ -8,6 +8,11 @@ export interface Message {
   text: string
 }
 
+export interface QuickAction {
+  label: string
+  prompt: string
+}
+
 export type CommandType = 'message' | 'command' | 'clear' | 'help' | 'quit'
 
 export interface CompletionResponse {
@@ -28,6 +33,8 @@ export interface MessageListProps {
   messages: Message[]
   thinking: boolean
   messagesEndRef: RefObject<HTMLDivElement | null>
+  quickActions: QuickAction[]
+  onQuickPrompt: (prompt: string) => void
 }
 
 export interface MessageInputProps {
@@ -47,5 +54,6 @@ export interface SidebarProps {
   onNew: () => void
   onDelete: (id: string) => void
   open: boolean
+  collapsed: boolean
   onClose: () => void
 }

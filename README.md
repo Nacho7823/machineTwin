@@ -53,7 +53,7 @@ El simulador debe correr en una terminal separada desde la raiz del proyecto:
 python simulator/main.py 2
 ```
 
-El argumento `2` indica el intervalo de actualizacion en segundos. Mientras el simulador esta activo, actualiza los archivos de la carpeta `data/`.
+El argumento `2` indica el intervalo de actualizacion en segundos. Mientras el simulador esta activo, crea una subcarpeta por cada maquina definida en `simulator/machine_configs.py` y actualiza sus archivos dentro de `data/`.
 
 ## Ejecucion de la aplicacion web
 
@@ -92,13 +92,17 @@ Para que las consultas tengan datos actuales, mantener el simulador corriendo en
 
 ## Datos generados
 
-El simulador y la aplicacion generan archivos locales para consultar estado, historiales, eventos y trazas:
+El simulador y la aplicacion generan archivos locales para consultar estado, historiales, eventos y trazas. Cada maquina escribe sus datos en `data/<machine_key>/`:
 
-- `data/machine_current.json`: estado actual de la maquina y variables medidas.
-- `data/operation_history.csv`: historial de operacion de las variables.
-- `data/event_history.csv`: historial de eventos, alertas, fallas y mantenimientos.
+- `data/cooling_tower/machine_current.json`: estado actual de la maquina y variables medidas.
+- `data/cooling_tower/operation_history.csv`: historial de operacion de las variables.
+- `data/cooling_tower/event_history.csv`: historial de eventos, alertas, fallas y mantenimientos.
+- `data/electric_motor/...`: archivos equivalentes para el motor.
+- `data/compressor/...`: archivos equivalentes para el compresor.
 - `logs/app.log`: logs generales de la aplicacion.
 - `logs/traces.jsonl`: trazas de ejecucion del agente y sus pasos.
+
+Si se agregan nuevas maquinas en `MACHINE_CONFIGS`, el simulador genera automaticamente una subcarpeta con esa key. Las tools tambien mantienen compatibilidad basica con archivos legacy directamente en `data/`.
 
 Los documentos tecnicos usados por el RAG estan en `docs-machines/`.
 
@@ -107,10 +111,10 @@ Los documentos tecnicos usados por el RAG estan en `docs-machines/`.
 El agente expone estas tools publicas:
 
 - `consultar_documentacion`: consulta la documentacion tecnica con RAG.
-- `obtener_estado_actual`: devuelve el estado operativo actual y las variables medidas.
-- `consultar_eventos_recientes`: lista eventos recientes desde `data/event_history.csv`.
-- `detectar_fuera_de_limites`: detecta variables fuera de rangos optimos u operativos.
-- `analizar_tendencia`: analiza la tendencia reciente de una variable.
+- `obtener_estado_actual`: devuelve el estado operativo actual y las variables medidas de todas las maquinas detectadas.
+- `consultar_eventos_recientes`: lista eventos recientes combinados desde las maquinas detectadas.
+- `detectar_fuera_de_limites`: detecta variables fuera de rangos optimos u operativos por maquina.
+- `analizar_tendencia`: analiza la tendencia reciente de una variable por maquina cuando existe en su historial. Usa 50 muestras por defecto y acepta una ventana solicitada hasta un maximo de 200 muestras.
 - `listar_archivos_datos`: lista archivos disponibles en `data/`.
 - `leer_archivo_datos`: lee un archivo especifico de `data/`.
 

@@ -7,7 +7,11 @@ from pathlib import Path
 from typing import Optional
 import pandas as pd
 from sklearn import base
-from machine_configs import MACHINE_CONFIGS, get_machine_config
+
+try:
+    from simulator.machine_configs import MACHINE_CONFIGS, get_machine_config
+except ModuleNotFoundError:
+    from machine_configs import MACHINE_CONFIGS, get_machine_config
 
 try:
     from utils import read_csv_with_fallback, read_text_with_fallback
@@ -383,43 +387,34 @@ class MachineSimulator:
             df.to_csv(csv_file, index=False)
         self._events_generated += 1
 
+
+def create_simulators(data_dir: Path) -> list[MachineSimulator]:
+    simulators = []
+    for machine_type in MACHINE_CONFIGS:
+        simulator = MachineSimulator(data_dir / machine_type)
+        simulator._set_machine(machine_type)
+        simulators.append(simulator)
+    return simulators
+
+
+def start_simulators(simulators: list[MachineSimulator], interval: int):
+    for simulator in simulators:
+        simulator.start(interval)
+        print(
+            f"Iniciando {simulator.machine_type} "
+            f"(datos: {simulator.data_dir.absolute()})"
+        )
+
+
+def stop_simulators(simulators: list[MachineSimulator]):
+    for simulator in simulators:
+        simulator.stop()
+
+
 async def main(interval: int):
-    sim1 = MachineSimulator(Path("data/cooling_tower"))
-    sim2 = MachineSimulator(Path("data/electric_motor"))
-    sim3 = MachineSimulator(Path("data/compressor"))
-
-    sim1._set_machine("cooling_tower")
-    sim2._set_machine("electric_motor")
-    sim3._set_machine("compressor")
-
-    sim1.running = True
-    sim2.running = True
-    sim3.running = True
-
-    sim1.interval = interval
-    sim2.interval = interval
-    sim3.interval = interval
-
-    print(
-        f"Iniciando {sim1.machine_type} "
-        f"(datos: {sim1.data_dir.absolute()})"
-    )
-
-    print(
-        f"Iniciando {sim2.machine_type} "
-        f"(datos: {sim2.data_dir.absolute()})"
-    )
-
-    print(
-        f"Iniciando {sim3.machine_type} "
-        f"(datos: {sim3.data_dir.absolute()})"
-    )
-
-    await asyncio.gather(
-        sim1._run(),
-        sim2._run(),
-        sim3._run(),
-    )
+    simulators = create_simulators(Path("data"))
+    start_simulators(simulators, interval)
+    await asyncio.gather(*(sim._task for sim in simulators if sim._task))
 
 
 if __name__ == "__main__":
