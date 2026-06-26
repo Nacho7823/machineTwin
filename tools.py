@@ -46,6 +46,8 @@ def _discover_machine_data() -> list[dict]:
         current_path = machine_dir / "machine_current.json"
         history_path = machine_dir / "operation_history.csv"
         events_path = machine_dir / "event_history.csv"
+        if not any(p.exists() for p in (current_path, history_path, events_path)):
+            continue
         current = {}
         if current_path.exists():
             try:
@@ -185,7 +187,7 @@ def consultar_eventos_recientes(limit: int = 10) -> str:
 
 
 @tool
-def analizar_tendencia(variable: str, ventana: int = 20) -> str:
+def analizar_tendencia(variable: str, ventana: int = DEFAULT_TREND_WINDOW) -> str:
     """Analiza la tendencia reciente de una variable usando el historial de operacion."""
     logger.info(f"Se ejecuto la herramienta 'analizar_tendencia' con variable={variable}, ventana={ventana}")
     machines = _discover_machine_data()
