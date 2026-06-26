@@ -1,7 +1,9 @@
 import type { MessageListProps } from '../types'
 import { MarkdownRenderer } from './MarkdownRenderer'
 
-export function MessageList({ messages, thinking, messagesEndRef }: MessageListProps) {
+export function MessageList({ messages, thinking, messagesEndRef, quickActions, onQuickPrompt }: MessageListProps) {
+  const lastMessageIndex = messages.length - 1
+
   return (
     <div className="chat-messages">
       {messages.length === 0 && (
@@ -22,6 +24,21 @@ export function MessageList({ messages, thinking, messagesEndRef }: MessageListP
               : msg.text
             }
           </div>
+          {i === lastMessageIndex && msg.role === 'bot' && quickActions.length > 0 && (
+            <div className="quick-actions" aria-label="Acciones rápidas">
+              {quickActions.map(action => (
+                <button
+                  key={action.label}
+                  type="button"
+                  className="quick-action-chip"
+                  onClick={() => onQuickPrompt(action.prompt)}
+                  disabled={thinking}
+                >
+                  {action.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       ))}
 

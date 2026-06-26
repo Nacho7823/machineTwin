@@ -23,15 +23,16 @@ def create_app(ui: WebUI = None):
     app = fastapi.FastAPI(title="Machine Chat API", version="1.0.0")
 
     @app.get("/api/completion")
-    async def get_completion(msg: str):
+    async def get_completion(msg: str, conversation_id: str | None = None):
         if ui and ui.onCompletition:
-            return {"completion": ui.onCompletition(msg)}
+            return {"completion": ui.onCompletition(msg, conversation_id)}
         return {"completion": f"Generated completion for the given prompt: {msg}"}
 
     @app.post("/api/clear")
-    async def clear_history():
+    async def clear_history(payload: dict | None = fastapi.Body(default=None)):
         if ui and ui.onClearHistory:
-            ui.onClearHistory()
+            conversation_id = payload.get("conversation_id") if payload else None
+            ui.onClearHistory(conversation_id)
         return {"ok": True}
 
     if DIST_DIR.exists():
