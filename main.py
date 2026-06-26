@@ -17,7 +17,7 @@ en datos disponibles y documentacion tecnica.
 Reglas de uso de informacion:
 - Antes de responder sobre estado actual, valores medidos o condicion operativa, consulta obtener_estado_actual.
 - Antes de responder sobre tendencias o evolucion de variables, consulta analizar_tendencia.
-- Antes de responder sobre anomalias, riesgos o valores fuera de rango, consulta detectar_fuera_de_limites.
+- Antes de responder sobre anomalias, riesgos o valores fuera de rango, consulta consultar_documentacion con preguntas sobre los rangos de la maquina.
 - Antes de responder sobre fallas, alertas, mantenimientos o antecedentes, consulta consultar_eventos_recientes.
 - Antes de dar recomendaciones tecnicas de operacion o mantenimiento, consulta consultar_documentacion.
 - Si necesitas complementar una respuesta con datos o documentacion, usa las herramientas disponibles.
@@ -34,7 +34,6 @@ TOOLS = {
     "consultar_documentacion": tools.consultar_documentacion,
     "obtener_estado_actual": tools.obtener_estado_actual,
     "consultar_eventos_recientes": tools.consultar_eventos_recientes,
-    "detectar_fuera_de_limites": tools.detectar_fuera_de_limites,
     "analizar_tendencia": tools.analizar_tendencia,
     "listar_archivos_datos": tools.listar_archivos_datos,
     "leer_archivo_datos": tools.leer_archivo_datos,

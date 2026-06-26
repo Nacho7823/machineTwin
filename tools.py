@@ -9,8 +9,6 @@ from langchain_core.tools import tool
 from config import DATA_DIR
 from utils import read_csv_with_fallback, read_text_with_fallback
 from rag.nativeRAG import query
-from simulator.machine_configs import MACHINE_CONFIGS
-
 logger = get_logger(__name__)
 
 
@@ -20,14 +18,6 @@ def _leer_estado_actual() -> dict | None:
         return None
     text = read_text_with_fallback(current_path)
     return json.loads(text)
-
-
-def _config_por_estado(machine_current: dict) -> dict | None:
-    machine_id = machine_current.get("machine_id")
-    for config in MACHINE_CONFIGS.values():
-        if config.get("id") == machine_id:
-            return config
-    return None
 
 
 def _limitar_entero(value: int, minimo: int, maximo: int) -> int:
@@ -117,50 +107,6 @@ def consultar_eventos_recientes(limit: int = 10) -> str:
         lines.append(
             f"- {timestamp} | {event_id} | tipo={event_type} | severidad={severity} | "
             f"resuelto={resolved} | {description}"
-        )
-
-    return "\n".join(lines)
-
-
-@tool
-def detectar_fuera_de_limites() -> str:
-    """Detecta variables actuales fuera de rango optimo u operativo segun la configuracion de la maquina."""
-    logger.info("Se ejecuto la herramienta 'detectar_fuera_de_limites'")
-    machine_current = _leer_estado_actual()
-    if not machine_current:
-        return "No hay datos actuales disponibles para analizar limites."
-
-    config = _config_por_estado(machine_current)
-    if not config:
-        return f"No se encontro configuracion para la maquina {machine_current.get('machine_id', 'sin id')}."
-
-    current_variables = machine_current.get("current_variables", {})
-    config_variables = config.get("variables", {})
-    lines = [
-        f"Analisis de limites para {machine_current.get('machine_name', config.get('name', 'maquina'))}:"
-    ]
-
-    for name, cfg in config_variables.items():
-        data = current_variables.get(name)
-        if not data or data.get("value") is None:
-            lines.append(
-                f"- {name}: sin datos | optimo=[{cfg['optimal_min']}, {cfg['optimal_max']}] "
-                f"| operativo=[{cfg['min']}, {cfg['max']}] | estado=sin_datos"
-            )
-            continue
-
-        value = float(data.get("value"))
-        unit = data.get("unit", cfg.get("unit", ""))
-        if value < cfg["min"] or value > cfg["max"]:
-            status = "fuera_rango_operativo"
-        elif value < cfg["optimal_min"] or value > cfg["optimal_max"]:
-            status = "fuera_rango_optimo"
-        else:
-            status = "normal"
-
-        lines.append(
-            f"- {name}: {value} {unit} | optimo=[{cfg['optimal_min']}, {cfg['optimal_max']}] "
-            f"| operativo=[{cfg['min']}, {cfg['max']}] | estado={status}"
         )
 
     return "\n".join(lines)
