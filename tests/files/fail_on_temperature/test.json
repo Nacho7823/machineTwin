@@ -1,4 +1,5 @@
 {
+  "purpose": "Evaluar que el agente detecta correctamente una anomalia de temperatura fuera de rango y la reporta al usuario",
   "archives": [
     "docs-machines/compressor_C300.md",
     "docs-machines/cooling_tower_T100.md"

@@ -6,6 +6,7 @@ def test():
     agent = agent_test.TestMachineTwin()
 
     configs, user_query = load_folder("tests/files/fail_on_temperature")
+    # configs, user_query = load_folder("tests/files/ask_inexistent_machine")
     agent.rag_archives(configs["rag_archives"])
     agent.sim_archives(configs["sim_archives"])
 
