@@ -1,0 +1,7 @@
+event_id,timestamp,event_type,description,severity,resolved,technician
+EVT-001,2026-06-27 08:00:00,alert,Anomalia detectada en temperature (severidad: medium),alert,False,Simulador
+EVT-002,2026-06-27 08:05:00,alert,Anomalia detectada en temperature (severidad: high),alert,False,Simulador
+EVT-003,2026-06-27 08:10:00,alert,Anomalia detectada en temperature (severidad: high),alert,False,Simulador
+EVT-004,2026-06-27 08:15:00,alert,Anomalia detectada en efficiency (severidad: low),alert,False,Simulador
+EVT-005,2026-06-27 08:20:00,alert,Anomalia detectada en temperature (severidad: high),alert,False,Simulador
+EVT-006,2026-06-27 08:25:00,alert,Anomalia detectada en power_consumption (severidad: medium),alert,False,Simulador

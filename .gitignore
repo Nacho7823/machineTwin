@@ -83,3 +83,9 @@ chroma_data/
 data
 ia-utn-frsf
 skills-lock.json
+
+
+tests/test_folder/
+
+logs
+.deepeval/

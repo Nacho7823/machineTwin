@@ -1,0 +1,32 @@
+{
+  "machine_id": "T-100",
+  "machine_name": "Torre de Enfriamiento Industrial T-100",
+  "machine_type": "Enfriamiento Industrial",
+  "current_variables": {
+    "temperature": {
+      "value": 58.3,
+      "unit": "°C"
+    },
+    "vibration": {
+      "value": 2.1,
+      "unit": "mm/s"
+    },
+    "pressure": {
+      "value": 2.05,
+      "unit": "bar"
+    },
+    "flow_rate": {
+      "value": 145.0,
+      "unit": "L/min"
+    },
+    "power_consumption": {
+      "value": 52.5,
+      "unit": "kW"
+    },
+    "efficiency": {
+      "value": 82.3,
+      "unit": "%"
+    }
+  },
+  "status": "operational"
+}

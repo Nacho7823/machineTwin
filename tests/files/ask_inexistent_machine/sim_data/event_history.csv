@@ -1,0 +1,4 @@
+event_id,timestamp,event_type,description,severity,resolved,technician
+EVT-001,2026-06-27 07:00:00,alert,Anomalia detectada en temperature (severidad: low),alert,True,Simulador
+EVT-002,2026-06-27 08:00:00,maintenance,Mantenimiento preventivo completado,info,True,Técnico García
+EVT-003,2026-06-27 09:00:00,alert,Anomalia detectada en vibration (severidad: medium),alert,False,Simulador
