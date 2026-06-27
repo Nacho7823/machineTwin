@@ -1,0 +1,9 @@
+{
+  "purpose": "Evaluar que el agente lee y aplica correctamente los umbrales de alerta del manual (RAG) en lugar de asumir que cualquier desviación fuera del rango óptimo es una anomalía, concluyendo que 92.0 °C en el Compresor C-300 es normal.",
+  "archives": [
+    "docs-machines/compressor_C300.md",
+    "docs-machines/cooling_tower_T100.md"
+  ],
+  "user_query": "El Compresor C-300 aumento la temperatura?",
+  "expected_output": "Si, el Compresor C-300 aumento la temperatura, pero de acuerdo con el manual, aunque la temperatura de descarga sea 92.0 °C, se encuentra dentro del rango operativo normal (30 – 120 °C) y no supera el umbral de alerta de alta temperatura de descarga, que es de más de 95 °C."
+}

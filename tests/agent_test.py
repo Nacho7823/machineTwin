@@ -7,25 +7,28 @@ from main import MachineTwin
 
 class TestMachineTwin:
 
-    def __init__(self):
-        self.FIRST_BASE_DIR = config.BASE_DIR
-        self.FIRST_DATA_DIR = config.DATA_DIR
-        self.FIRST_LOGS_DIR = config.LOGS_DIR
-        self.FIRST_DOCS_DIR = config.DOCS_DIR
+    def __init__(self, base_folder, work_folder):
+        self.FIRST_BASE_DIR = Path(base_folder)
+        self.FIRST_DATA_DIR = self.FIRST_BASE_DIR / "data"
+        self.FIRST_LOGS_DIR = self.FIRST_BASE_DIR / "logs"
+        self.FIRST_DOCS_DIR = self.FIRST_BASE_DIR / "docs-machines"
         
         # set test folder
-        config.BASE_DIR = Path(__file__).parent / "test_folder"
-        config.DATA_DIR = config.BASE_DIR / "data"
-        config.LOGS_DIR = config.BASE_DIR / "logs"
-        config.DOCS_DIR = config.BASE_DIR / "docs-machines"
+        self.work_dir = Path(work_folder)
+        self.data_dir = self.work_dir / "data"
+        self.logs_dir = self.work_dir / "logs"
+        self.docs_dir = self.work_dir / "docs-machines"
+        
+        # Configure LOGS_DIR for the event trace logger which reads from config.LOGS_DIR
+        config.LOGS_DIR = self.logs_dir
     
         # rm test folder files if exists
-        if config.BASE_DIR.exists():
-            for file in config.BASE_DIR.glob("**/*"):
+        if self.work_dir.exists():
+            for file in self.work_dir.glob("**/*"):
                 if file.is_file():
                     file.unlink()
         else:
-            config.BASE_DIR.mkdir(parents=True, exist_ok=True)
+            self.work_dir.mkdir(parents=True, exist_ok=True)
 
     def rag_archives(self, archives):
         self.rag_archives = archives
@@ -33,7 +36,7 @@ class TestMachineTwin:
         # copy archives to the docs-machines folder
         for archive in archives:
             archive_path = self.FIRST_BASE_DIR / Path(archive)
-            dest_path = config.DOCS_DIR / archive_path.name
+            dest_path = self.docs_dir / archive_path.name
             dest_path.parent.mkdir(parents=True, exist_ok=True)
             if not dest_path.exists():
                 dest_path.write_text(archive_path.read_text())
@@ -41,9 +44,23 @@ class TestMachineTwin:
     def sim_archives(self, sim_archives):
         self.sim_archives = sim_archives
         
-        # copy sim_archives to the data folder
+        # Determine machine directory name from machine_current.json
+        machine_current = sim_archives.get("machine_current.json", {})
+        machine_id = machine_current.get("machine_id", "unknown")
+        
+        machine_dir_name = "unknown"
+        if "T-100" in machine_id:
+            machine_dir_name = "cooling_tower"
+        elif "C-300" in machine_id:
+            machine_dir_name = "compressor"
+        elif "M-200" in machine_id:
+            machine_dir_name = "electric_motor"
+        else:
+            machine_dir_name = machine_id.lower().replace("-", "_")
+            
+        # copy sim_archives to the machine data folder
         for file_name, content in sim_archives.items():
-            dest_path = config.DATA_DIR / file_name
+            dest_path = self.data_dir / machine_dir_name / file_name
             dest_path.parent.mkdir(parents=True, exist_ok=True)
             if isinstance(content, dict):
                 dest_path.write_text(json.dumps(content))
@@ -52,11 +69,11 @@ class TestMachineTwin:
                 
     def load(self):
         # loads rag and agent
-        self.twin = MachineTwin()
+        self.twin = MachineTwin(data_dir=self.data_dir, docs_dir=self.docs_dir)
         
 
     def input(self, msg, conversation_id=None):
-        traces_path = config.LOGS_DIR / "traces.jsonl"
+        traces_path = self.logs_dir / "traces.jsonl"
         offset = traces_path.stat().st_size if traces_path.exists() else 0
 
         chat = self.twin.process(msg, conversation_id=conversation_id)

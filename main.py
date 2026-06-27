@@ -1,7 +1,8 @@
+from pathlib import Path
 from log import get_logger
 from llm import LLMAgent
 from langchain_core.messages import HumanMessage, SystemMessage
-from config import SYSTEM_PROMPT_PATH
+from config import SYSTEM_PROMPT_PATH, DATA_DIR, DOCS_DIR
 
 import tools
 
@@ -10,19 +11,12 @@ logger = get_logger(__name__)
 SYSTEM_PROMPT = SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")
 
 
-TOOLS = {
-    "consultar_documentacion": tools.consultar_documentacion,
-    "obtener_estado_actual": tools.obtener_estado_actual,
-    "consultar_eventos_recientes": tools.consultar_eventos_recientes,
-    "analizar_tendencia": tools.analizar_tendencia,
-    "listar_archivos_datos": tools.listar_archivos_datos,
-    "leer_archivo_datos": tools.leer_archivo_datos,
-}
-
-
 class MachineTwin:
-    def __init__(self):
-        self._agent = LLMAgent(tools=TOOLS)
+    def __init__(self, data_dir=None, docs_dir=None):
+        data_path = Path(data_dir) if data_dir else DATA_DIR
+        docs_path = Path(docs_dir) if docs_dir else DOCS_DIR
+        self.tools_manager = tools.TwinTools(data_path, docs_path)
+        self._agent = LLMAgent(tools=self.tools_manager.get_tools())
         self._histories = {}
 
     @property
@@ -51,8 +45,8 @@ class MachineTwin:
             logger.info("Respuesta generada exitosamente.")
             history.append(HumanMessage(content=query))
             history.append(response)
-            if len(history) > 20:
-                history[:] = history[-20:]
+            # if len(history) > 20:
+            #     history[:] = history[-20:]
             return answer
         except Exception as e:
             logger.error(f"Error al procesar consulta: {e}")
@@ -73,7 +67,7 @@ class MachineTwin:
 if __name__ == "__main__":
     import sys
 
-    twin = MachineTwin()
+    twin = MachineTwin(DATA_DIR, DOCS_DIR)
 
     def handle_completion(msg: str, conversation_id: str | None = None):
         return twin.process(msg, conversation_id=conversation_id)
