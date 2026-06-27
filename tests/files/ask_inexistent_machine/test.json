@@ -4,5 +4,6 @@
     "docs-machines/compressor_C300.md",
     "docs-machines/cooling_tower_T100.md"
   ],
-  "user_query": "Cual es el estado actual de la Bomba de Vacío V-500?"
+  "user_query": "Cual es el estado actual de la Bomba de Vacío V-500?",
+  "expected_output": "La máquina Bomba de Vacío V-500 no existe en el sistema o no está registrada."
 }

@@ -19,10 +19,12 @@ def test():
     print(f"Chat: {chat}")
     print(f"Trace: {trace}")
 
+    expected_output = configs.get("expected_output", "")
+
     fairthfulness_score = benchmarks.benchmark_fairthfulness(trace)
     answer_relevance_score = benchmarks.benchmark_answer_relevance(trace)
-    context_precision_score = benchmarks.benchmark_context_precision(trace)
-    context_recall_score = benchmarks.benchmark_context_recall(trace)
+    context_precision_score = benchmarks.benchmark_context_precision(trace, expected_output)
+    context_recall_score = benchmarks.benchmark_context_recall(trace, expected_output)
 
     print(f"Faithfulness: {fairthfulness_score}")
     print(f"Answer Relevance: {answer_relevance_score}")

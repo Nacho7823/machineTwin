@@ -4,5 +4,6 @@
     "docs-machines/compressor_C300.md",
     "docs-machines/cooling_tower_T100.md"
   ],
-  "user_query": "Cual es el estado actual de la Torre de Enfriamiento T-100? Hay alguna anomalia en la temperatura?"
+  "user_query": "Cual es el estado actual de la Torre de Enfriamiento T-100? Hay alguna anomalia en la temperatura?",
+  "expected_output": "El estado actual de la Torre de Enfriamiento T-100 es operacional, pero presenta una anomalía de temperatura elevada de 58.3 °C, lo cual supera el límite de alerta de 52 °C y la temperatura máxima de operación continua de 55 °C."
 }

@@ -9,6 +9,7 @@ def load_folder(folder_path):
 
     archives = test_config["archives"]
     user_query = test_config["user_query"]
+    expected_output = test_config.get("expected_output", "")
 
     data = {}
     with open(os.path.join(folder_path, "sim_data/event_history.csv"), "r") as f:
@@ -21,6 +22,7 @@ def load_folder(folder_path):
     return {
         "rag_archives": archives,
         "sim_archives": data,
+        "expected_output": expected_output,
     }, user_query
 
 
