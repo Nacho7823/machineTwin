@@ -3,6 +3,8 @@ from config import LLM_API_KEY, LLM_BASE_URL, LLM_MODEL
 
 os.environ["OPENAI_API_KEY"] = LLM_API_KEY or "a"
 os.environ["OPENAI_BASE_URL"] = LLM_BASE_URL
+JUDGE_LLM_MODEL = LLM_MODEL
+MOSTRAR_LOGS = False
 
 from deepeval.test_case import LLMTestCase
 from deepeval.metrics import (
@@ -32,7 +34,7 @@ def benchmark_fairthfulness(trace):
     test_case = _build_test_case(trace)
     if test_case is None:
         return None
-    metric = FaithfulnessMetric(threshold=0.7, model=LLM_MODEL, include_reason=True)
+    metric = FaithfulnessMetric(threshold=0.7, model=JUDGE_LLM_MODEL, include_reason=True, verbose_mode=MOSTRAR_LOGS)
     metric.measure(test_case)
     return metric.score
 
@@ -42,7 +44,7 @@ def benchmark_answer_relevance(trace):
     test_case = _build_test_case(trace)
     if test_case is None:
         return None
-    metric = AnswerRelevancyMetric(threshold=0.7, model=LLM_MODEL, include_reason=True)
+    metric = AnswerRelevancyMetric(threshold=0.7, model=JUDGE_LLM_MODEL, include_reason=True, verbose_mode=MOSTRAR_LOGS)
     metric.measure(test_case)
     return metric.score
 
@@ -52,7 +54,7 @@ def benchmark_context_precision(trace, expected_output):
     test_case = _build_test_case(trace, expected_output=expected_output)
     if test_case is None:
         return None
-    metric = ContextualPrecisionMetric(threshold=0.7, model=LLM_MODEL, include_reason=True)
+    metric = ContextualPrecisionMetric(threshold=0.7, model=JUDGE_LLM_MODEL, include_reason=True, verbose_mode=MOSTRAR_LOGS)
     metric.measure(test_case)
     return metric.score
 
@@ -62,6 +64,6 @@ def benchmark_context_recall(trace, expected_output):
     test_case = _build_test_case(trace, expected_output=expected_output)
     if test_case is None:
         return None
-    metric = ContextualRecallMetric(threshold=0.7, model=LLM_MODEL, include_reason=True)
+    metric = ContextualRecallMetric(threshold=0.7, model=JUDGE_LLM_MODEL, include_reason=True, verbose_mode=MOSTRAR_LOGS)
     metric.measure(test_case)
     return metric.score

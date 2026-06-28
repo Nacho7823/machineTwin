@@ -151,3 +151,18 @@ Usar esos casos con el simulador corriendo y, segun corresponda, con la aplicaci
 - `docs/casos_prueba.md`: casos de prueba manuales para la Entrega 2.
 - `data/`: archivos generados por el simulador.
 - `logs/`: logs y trazas generadas por la aplicacion.
+
+
+## Tests
+En la carpeta tests hay un benchmark, este usa los datos de las carpetas en tests/files/*  
+
+para correr los tests:
+```bash
+python -m tests
+```
+
+Se usa LLM-as-a-judge. el modelo esta definido en benchmarks.py.
+Se debe cambiar el modelo para obtener resultados no sesgados.
+
+
+

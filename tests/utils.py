@@ -46,9 +46,9 @@ def parse_trace(trace: list[dict]) -> dict:
             if content:
                 actual_output = content
 
-        elif evt == "tool_call" and event.get("tool") == "consultar_documentacion":
+        elif evt == "tool_call":
             output = event.get("output", "")
-            if output and "No se encontraron" not in output:
+            if output and not any(term in output for term in ["No se encontraron", "No hay datos", "No hay eventos", "Error"]):
                 retrieval_outputs.append(output)
 
     retrieval_context = []
