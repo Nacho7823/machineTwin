@@ -6,6 +6,7 @@
     "docs-machines/electric_motor_M200.md"
   ],
   "user_query": "Dame el estado actual de las maquinas.",
+  "include_configured_machines": true,
   "expected_tools": ["obtener_estado_actual"],
   "judge_metrics": ["faithfulness", "answer_relevance"],
   "expected_output": "El agente informa las maquinas detectadas, estado operativo, variables actuales, valores y unidades."

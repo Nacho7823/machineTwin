@@ -6,6 +6,7 @@
     "docs-machines/electric_motor_M200.md"
   ],
   "user_query": "Mostrame eventos recientes de las maquinas.",
+  "include_configured_machines": true,
   "expected_tools": ["consultar_eventos_recientes"],
   "judge_metrics": ["faithfulness", "answer_relevance"],
   "expected_output": "El agente muestra eventos recientes con maquina, fecha, tipo, severidad y descripcion, sin mostrar resolved ni resuelto."

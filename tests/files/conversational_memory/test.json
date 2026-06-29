@@ -9,6 +9,7 @@
     "Dame el estado actual de las maquinas.",
     "Y la temperatura sigue siendo normal?"
   ],
+  "include_configured_machines": true,
   "expected_tools": ["obtener_estado_actual", "detectar_fuera_de_limites"],
   "judge_metrics": ["answer_relevance"],
   "expected_output": "El agente revisa datos actuales y limites, y responde si la temperatura esta dentro de rango por maquina."

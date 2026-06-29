@@ -7,6 +7,7 @@
     "docs-machines/electric_motor_M200.md"
   ],
   "user_query": "Analiza la tendencia de humedad relativa.",
+  "include_configured_machines": true,
   "expected_tools": ["analizar_tendencia"],
   "expected_output": "El agente indica que la variable solicitada no existe en los historiales revisados y lista variables disponibles sin inventar datos."
 }

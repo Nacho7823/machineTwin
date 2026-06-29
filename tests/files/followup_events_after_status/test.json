@@ -10,6 +10,7 @@
     "Dame el estado actual de las maquinas.",
     "Y hay alertas o eventos recientes que deba revisar?"
   ],
+  "include_configured_machines": true,
   "expected_tools": ["obtener_estado_actual", "consultar_eventos_recientes"],
   "expected_output": "El agente conserva el contexto de las maquinas y revisa eventos recientes antes de responder si hay alertas para revisar."
 }

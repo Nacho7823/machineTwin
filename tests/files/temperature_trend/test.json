@@ -6,6 +6,7 @@
     "docs-machines/electric_motor_M200.md"
   ],
   "user_query": "Analiza la tendencia de temperatura de los ultimos registros.",
+  "include_configured_machines": true,
   "expected_tools": ["analizar_tendencia"],
   "expected_output": "El agente resume por maquina cantidad de muestras, valor inicial, valor final, variacion y tendencia de temperatura."
 }

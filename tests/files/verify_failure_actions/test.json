@@ -7,6 +7,7 @@
     "docs-machines/electric_motor_M200.md"
   ],
   "user_query": "Que pasos de verificacion deberia seguir si sospecho una falla?",
+  "include_configured_machines": true,
   "expected_tools": ["consultar_documentacion"],
   "expected_output": "El agente enumera verificaciones tecnicas documentadas y evita diagnosticar una causa sin datos suficientes."
 }

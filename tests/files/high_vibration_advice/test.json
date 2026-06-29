@@ -6,6 +6,7 @@
     "docs-machines/electric_motor_M200.md"
   ],
   "user_query": "Si la vibracion aumenta mucho, que deberia revisar?",
+  "include_configured_machines": true,
   "expected_tools": ["detectar_fuera_de_limites", "consultar_documentacion"],
   "expected_output": "El agente contrasta valores actuales con rangos y complementa con documentacion tecnica antes de sugerir revisiones; debe aclarar si no hay evidencia suficiente de falla."
 }

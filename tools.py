@@ -15,6 +15,23 @@ logger = get_logger(__name__)
 DEFAULT_TREND_WINDOW = 50
 MIN_TREND_WINDOW = 2
 MAX_TREND_WINDOW = 200
+DEFAULT_RAG_RESULTS = 6
+MAX_RAG_RESULTS = 9
+VARIABLE_ALIASES = {
+    "temperatura": "temperature",
+    "temp": "temperature",
+    "vibracion": "vibration",
+    "vibración": "vibration",
+    "presion": "pressure",
+    "presión": "pressure",
+    "caudal": "flow_rate",
+    "flujo": "flow_rate",
+    "consumo": "power_consumption",
+    "consumo de potencia": "power_consumption",
+    "potencia": "power_consumption",
+    "eficiencia": "efficiency",
+    "corriente": "current",
+}
 
 
 def _limitar_entero(value: int, minimo: int, maximo: int) -> int:
@@ -38,11 +55,19 @@ def _normalizar_ventana_tendencia(value: int) -> tuple[int, str | None]:
     return requested, None
 
 
+def _normalizar_variable(variable: str) -> tuple[str, str | None]:
+    raw = str(variable or "").strip()
+    normalized = VARIABLE_ALIASES.get(raw.lower(), raw)
+    if raw and normalized != raw:
+        return normalized, f"Variable solicitada: '{raw}'. Se interpreto como '{normalized}'."
+    return normalized, None
+
+
 def _discover_machine_data(data_dir: Path) -> list[dict]:
     machines = []
     if not data_dir.exists():
         return machines
-    for machine_dir in data_dir.iterdir():
+    for machine_dir in sorted(data_dir.iterdir()):
         if not machine_dir.is_dir():
             continue
         current_path = machine_dir / "machine_current.json"
@@ -137,6 +162,42 @@ def _rag_chunk_metadata(result: dict) -> dict:
     }
 
 
+def _mentions_specific_machine(query: str) -> bool:
+    normalized = str(query or "").lower()
+    for machine_key, machine_config in MACHINE_CONFIGS.items():
+        identifiers = [
+            machine_key,
+            machine_config.get("id", ""),
+            machine_config.get("name", ""),
+            machine_config.get("type", ""),
+        ]
+        if any(identifier and identifier.lower() in normalized for identifier in identifiers):
+            return True
+    return False
+
+
+def _dedupe_rag_results(results: list[dict]) -> list[dict]:
+    deduped = []
+    seen = set()
+    for result in results:
+        metadata = result.get("metadata", {})
+        key = (
+            metadata.get("source_path"),
+            metadata.get("chunk_index"),
+            str(result.get("document", ""))[:80],
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(result)
+    return deduped
+
+
+def _document_name(result: dict) -> str:
+    metadata = result.get("metadata", {})
+    return metadata.get("source_path") or metadata.get("titulo") or metadata.get("doc_id") or "documento"
+
+
 class TwinTools:
     def __init__(self, data_dir: Path, docs_dir: Path):
         self.data_dir = Path(data_dir)
@@ -149,7 +210,18 @@ class TwinTools:
             """Consulta la documentación del sistema utilizando RAG para responder preguntas o buscar información."""
             logger.info(f"Se ejecuto la herramienta 'consultar_documentacion' con query: '{q}'")
             try:
-                resultados = self.rag.query(q)
+                resultados = self.rag.query(q, k=DEFAULT_RAG_RESULTS)
+                if resultados and not _mentions_specific_machine(q):
+                    seen_documents = {_document_name(result) for result in resultados}
+                    for machine_config in MACHINE_CONFIGS.values():
+                        per_machine_query = f"{q} {machine_config['name']} {machine_config['id']}"
+                        for candidate in self.rag.query(per_machine_query, k=2):
+                            document_name = _document_name(candidate)
+                            if document_name not in seen_documents:
+                                resultados.append(candidate)
+                                seen_documents.add(document_name)
+                                break
+                    resultados = _dedupe_rag_results(resultados)[:MAX_RAG_RESULTS]
                 if not resultados:
                     log_trace_event({
                         "event": "rag_retrieval",
@@ -168,6 +240,12 @@ class TwinTools:
                     f'[{i+1}] ({r["metadata"]["titulo"]}): {r["document"]}'
                     for i, r in enumerate(resultados)
                 ]
+                documentos = []
+                for result in resultados:
+                    document_name = _document_name(result)
+                    if document_name not in documentos:
+                        documentos.append(document_name)
+                contexto_partes.append("Documentos consultados: " + ", ".join(documentos) + ".")
                 resultado = '\n\n'.join(contexto_partes)
                 logger.info(f"Herramienta 'consultar_documentacion' devolvio un resultado exitoso (longitud: {len(resultado)}).")
                 return resultado
@@ -191,7 +269,11 @@ class TwinTools:
             """Consulta los eventos, alertas, fallas o mantenimientos mas recientes de las maquinas."""
             logger.info(f"Se ejecuto la herramienta 'consultar_eventos_recientes' con limit={limit}")
             event_frames = []
+            machines_seen = []
+            machines_with_events = set()
             for machine in _discover_machine_data(self.data_dir):
+                machine_name = _machine_name(machine)
+                machines_seen.append(machine_name)
                 events_path = machine["events_path"]
                 if not events_path.exists():
                     continue
@@ -202,10 +284,13 @@ class TwinTools:
                 if df.empty:
                     continue
                 df = df.copy()
-                df["machine_name"] = _machine_name(machine)
+                df["machine_name"] = machine_name
+                machines_with_events.add(machine_name)
                 event_frames.append(df)
 
             if not event_frames:
+                if machines_seen:
+                    return "No hay eventos registrados para las maquinas disponibles: " + ", ".join(machines_seen) + "."
                 return "No hay eventos registrados."
 
             df = pd.concat(event_frames, ignore_index=True)
@@ -225,6 +310,9 @@ class TwinTools:
                     f"- {timestamp} | maquina={machine_name} | {event_id} | tipo={event_type} | severidad={severity} | "
                     f"{description}"
                 )
+            machines_without_events = [name for name in machines_seen if name not in machines_with_events]
+            if machines_without_events:
+                lines.append("Maquinas sin eventos recientes: " + ", ".join(machines_without_events) + ".")
 
             return "\n".join(lines)
 
@@ -266,6 +354,7 @@ class TwinTools:
             sections = []
             missing_variables = []
             ventana, window_note = _normalizar_ventana_tendencia(ventana)
+            variable, variable_note = _normalizar_variable(variable)
             for machine in machines:
                 history_path = machine["history_path"]
                 if not history_path.exists():
@@ -289,9 +378,11 @@ class TwinTools:
                 sections.append(f"Maquina: {_machine_name(machine)}\n{_trend_for_series(series, variable)}")
 
             if sections:
-                if window_note:
-                    return window_note + "\n\n" + "\n\n".join(sections)
-                return "\n\n".join(sections)
+                notes = [note for note in (window_note, variable_note) if note]
+                body = "\n\n".join(sections)
+                if notes:
+                    return "\n".join(notes) + "\n\n" + body
+                return body
             if missing_variables:
                 return f"La variable '{variable}' no existe en los historiales revisados. Variables disponibles por maquina: " + "; ".join(missing_variables) + "."
             return "No hay historial de operacion disponible."

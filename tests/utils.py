@@ -1,6 +1,62 @@
 import json
 import os
 import re
+from datetime import datetime, timedelta
+
+from simulator.machine_configs import MACHINE_CONFIGS
+
+
+def _machine_key_from_current(machine_current: dict) -> str:
+    machine_id = machine_current.get("machine_id", "")
+    if "T-100" in machine_id:
+        return "cooling_tower"
+    if "C-300" in machine_id:
+        return "compressor"
+    if "M-200" in machine_id:
+        return "electric_motor"
+    return machine_id.lower().replace("-", "_") or "unknown"
+
+
+def _default_machine_current(machine_key: str, machine_config: dict) -> dict:
+    return {
+        "machine_id": machine_config["id"],
+        "machine_name": machine_config["name"],
+        "machine_type": machine_config["type"],
+        "current_variables": {
+            variable: {
+                "value": spec["mean"],
+                "unit": spec["unit"],
+            }
+            for variable, spec in machine_config["variables"].items()
+        },
+        "status": "operational",
+    }
+
+
+def _default_operation_history(machine_config: dict) -> str:
+    variables = list(machine_config["variables"].keys())
+    rows = [",".join(["timestamp", *variables])]
+    start = datetime(2026, 6, 27, 7, 0, 0)
+    for i in range(3):
+        timestamp = (start + timedelta(minutes=10 * i)).strftime("%Y-%m-%d %H:%M:%S")
+        values = [str(machine_config["variables"][variable]["mean"]) for variable in variables]
+        rows.append(",".join([timestamp, *values]))
+    return "\n".join(rows)
+
+
+def _empty_event_history() -> str:
+    return "event_id,timestamp,event_type,description,severity,resolved,technician"
+
+
+def _default_machine_archives() -> dict:
+    return {
+        machine_key: {
+            "machine_current.json": _default_machine_current(machine_key, machine_config),
+            "operation_history.csv": _default_operation_history(machine_config),
+            "event_history.csv": _empty_event_history(),
+        }
+        for machine_key, machine_config in MACHINE_CONFIGS.items()
+    }
 
 
 def load_folder(folder_path):
@@ -22,6 +78,12 @@ def load_folder(folder_path):
         data["machine_current.json"] = json.load(f)
     with open(os.path.join(data_folder, "sim_data/operation_history.csv"), "r") as f:
         data["operation_history.csv"] = f.read().strip()
+
+    if test_config.get("include_configured_machines"):
+        machines = _default_machine_archives()
+        fixture_machine_key = _machine_key_from_current(data["machine_current.json"])
+        machines[fixture_machine_key] = data
+        data = {"__machines__": machines}
 
     return {
         "rag_archives": archives,

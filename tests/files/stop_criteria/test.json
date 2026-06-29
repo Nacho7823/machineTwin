@@ -7,6 +7,7 @@
     "docs-machines/electric_motor_M200.md"
   ],
   "user_query": "Cuando deberia detener una maquina o escalar la revision?",
+  "include_configured_machines": true,
   "expected_tools": ["consultar_documentacion"],
   "expected_output": "El agente responde con criterios de parada o escalamiento documentados por maquina y aclara limites de la informacion disponible."
 }

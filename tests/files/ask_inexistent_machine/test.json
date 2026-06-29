@@ -5,5 +5,6 @@
     "docs-machines/cooling_tower_T100.md"
   ],
   "user_query": "Cual es el estado actual de la Bomba de Vacío V-500?",
-  "expected_output": "La máquina Bomba de Vacío V-500 no existe en el sistema o no está registrada."
+  "include_configured_machines": true,
+  "expected_output": "La máquina Bomba de Vacío V-500 no existe en el sistema o no está registrada; si lista máquinas disponibles, solo debe hacerlo como contexto secundario."
 }
