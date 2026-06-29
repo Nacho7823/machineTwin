@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import os
 from hashlib import sha256
 from datetime import datetime, timezone
 
@@ -9,6 +10,7 @@ from .utils import load_folder, parse_trace
 
 
 ALL_METRICS = ["faithfulness", "answer_relevance", "context_precision"]
+DEFAULT_TEST_PROFILE = "semantic_rag"
 
 PROFILE_DESCRIPTIONS = {
     "functional": "19 casos con checks deterministas y sin LLM-as-judge.",
@@ -37,7 +39,7 @@ def _average(scores):
 
 def _measure_selected(trace, expected_output, model, metric_names):
     available = {
-        "faithfulness": lambda: benchmarks.benchmark_fairthfulness(trace, model=model),
+        "faithfulness": lambda: benchmarks.benchmark_faithfulness(trace, model=model),
         "answer_relevance": lambda: benchmarks.benchmark_answer_relevance(trace, model=model),
         "context_precision": lambda: benchmarks.benchmark_context_precision(trace, expected_output, model=model),
     }
@@ -51,24 +53,11 @@ def _measure_selected(trace, expected_output, model, metric_names):
 
 
 def _active_profile():
-    profile = benchmarks.TEST_PROFILE or ""
-    if profile == "semantic":
-        return "semantic_rag"
-    return profile
+    return os.getenv("TEST_PROFILE", DEFAULT_TEST_PROFILE).strip().lower() or DEFAULT_TEST_PROFILE
 
 
-def _legacy_judge_metrics(configs):
-    if benchmarks.JUDGE_MODE == "off":
-        return []
-    if benchmarks.JUDGE_MODE == "all":
-        return ALL_METRICS
-    return configs.get("judge_metrics", [])
-
-
-def _case_judge_metrics(folder_name, configs):
+def _case_judge_metrics(folder_name):
     profile = _active_profile()
-    if not profile:
-        return _legacy_judge_metrics(configs)
     if profile == "functional":
         return []
     if profile == "semantic_rag":
@@ -79,15 +68,8 @@ def _case_judge_metrics(folder_name, configs):
     raise ValueError(f"TEST_PROFILE invalido: {profile}. Valores validos: {valid}")
 
 
-def _select_test_folders(test_folders):
-    return test_folders
-
-
 def _profile_label():
-    profile = _active_profile()
-    if profile:
-        return profile
-    return f"legacy:{benchmarks.JUDGE_MODE}"
+    return _active_profile()
 
 
 def _tools_ok(trace, expected_tools):
@@ -123,10 +105,8 @@ def _build_report(status, results, case_reports, total_cases):
         "status": status,
         "agent_model": config.LLM_MODEL,
         "judge_model": benchmarks.JUDGE_LLM_MODEL,
-        "judge_mode": benchmarks.JUDGE_MODE,
         "test_profile": _profile_label(),
         "second_judge_model": benchmarks.SECOND_JUDGE_LLM_MODEL or None,
-        "judge_metric_timeout_seconds": benchmarks.JUDGE_METRIC_TIMEOUT_SECONDS,
         "System Prompt version": config.SYSTEM_PROMPT_VERSION,
         "prompt_hash": _prompt_hash(),
         "total_cases": total_cases,
@@ -155,8 +135,7 @@ def test():
     work_dir = Path(__file__).parent / "test_folder"
     
     files_dir = Path(__file__).parent / "files"
-    all_test_folders = sorted([p for p in files_dir.iterdir() if p.is_dir()])
-    test_folders = _select_test_folders(all_test_folders)
+    test_folders = sorted([p for p in files_dir.iterdir() if p.is_dir()])
 
     print(f"Perfil de test: {_profile_label()}")
     if _active_profile():
@@ -202,7 +181,7 @@ def test():
         print("-" * 40)
 
         expected_output = configs.get("expected_output", "")
-        judge_metrics = _case_judge_metrics(folder_name, configs)
+        judge_metrics = _case_judge_metrics(folder_name)
         metric_scores = _measure_selected(trace, expected_output, benchmarks.JUDGE_LLM_MODEL, judge_metrics)
         second_scores = None
         if benchmarks.SECOND_JUDGE_LLM_MODEL and judge_metrics:

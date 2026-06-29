@@ -1,15 +1,10 @@
 import os
-import signal
-from contextlib import contextmanager
 from config import LLM_API_KEY, LLM_BASE_URL, LLM_MODEL
 
 os.environ["OPENAI_API_KEY"] = LLM_API_KEY or "a"
 os.environ["OPENAI_BASE_URL"] = LLM_BASE_URL
 JUDGE_LLM_MODEL = LLM_MODEL
 SECOND_JUDGE_LLM_MODEL = os.getenv("SECOND_JUDGE_LLM_MODEL", "")
-JUDGE_MODE = os.getenv("JUDGE_MODE", "selected")
-TEST_PROFILE = os.getenv("TEST_PROFILE", "").strip().lower()
-JUDGE_METRIC_TIMEOUT_SECONDS = int(os.getenv("JUDGE_METRIC_TIMEOUT_SECONDS", "0"))
 MOSTRAR_LOGS = False
 
 from deepeval.test_case import LLMTestCase
@@ -22,32 +17,9 @@ from deepeval.metrics import (
 from tests.utils import parse_trace
 
 
-class MetricTimeoutError(Exception):
-    pass
-
-
-@contextmanager
-def _metric_timeout(metric_name: str):
-    if JUDGE_METRIC_TIMEOUT_SECONDS <= 0:
-        yield
-        return
-
-    def _handle_timeout(signum, frame):
-        raise MetricTimeoutError(f"Timeout en {metric_name} despues de {JUDGE_METRIC_TIMEOUT_SECONDS}s")
-
-    previous_handler = signal.signal(signal.SIGALRM, _handle_timeout)
-    signal.alarm(JUDGE_METRIC_TIMEOUT_SECONDS)
-    try:
-        yield
-    finally:
-        signal.alarm(0)
-        signal.signal(signal.SIGALRM, previous_handler)
-
-
 def _measure_metric(metric, test_case, metric_name: str):
     try:
-        with _metric_timeout(metric_name):
-            metric.measure(test_case)
+        metric.measure(test_case)
         return metric.score
     except Exception as e:
         print(f"  - {metric_name}: sin puntaje ({type(e).__name__}: {e})")
@@ -66,7 +38,7 @@ def _build_test_case(trace, expected_output=None):
     )
 
 
-def benchmark_fairthfulness(trace, model=JUDGE_LLM_MODEL):
+def benchmark_faithfulness(trace, model=JUDGE_LLM_MODEL):
     # Faithfulness	¿Las afirmaciones están soportadas por el contexto?
     test_case = _build_test_case(trace)
     if test_case is None:

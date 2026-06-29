@@ -285,7 +285,6 @@ Corrida semantica + RAG recomendada. Ejecuta los 19 casos, pero solo usa juez en
 ```bash
 SYSTEM_PROMPT_VERSION=0.0.2 \
 TEST_PROFILE=semantic_rag \
-JUDGE_METRIC_TIMEOUT_SECONDS=0 \
 .venv/bin/python -m tests
 ```
 
@@ -294,7 +293,6 @@ Corrida exhaustiva. Ejecuta los 19 casos con las tres metricas; es costosa y que
 ```bash
 SYSTEM_PROMPT_VERSION=0.0.2 \
 TEST_PROFILE=exhaustive \
-JUDGE_METRIC_TIMEOUT_SECONDS=0 \
 .venv/bin/python -m tests
 ```
 
@@ -303,7 +301,6 @@ Ejemplo para ejecutar la corrida semantica con un modelo especifico sin editar `
 ```bash
 SYSTEM_PROMPT_VERSION=0.0.2 \
 TEST_PROFILE=semantic_rag \
-JUDGE_METRIC_TIMEOUT_SECONDS=0 \
 LLM_MODEL=meta/llama-3.3-70b-instruct \
 LLM_TEMPERATURE=0.2 \
 LLM_TOP_P=0.7 \
@@ -313,7 +310,7 @@ LLM_REASONING_BUDGET=0 \
 .venv/bin/python -m tests
 ```
 
-`TEST_PROFILE`, cuando esta definido, tiene prioridad sobre `JUDGE_MODE`. El modelo juez usa la misma configuracion que el agente por defecto. Tambien se puede configurar un segundo juez:
+`TEST_PROFILE` define el tipo de corrida. El modelo juez usa la misma configuracion que el agente por defecto. Tambien se puede configurar un segundo juez:
 
 ```bash
 SECOND_JUDGE_LLM_MODEL=otro/modelo python -m tests
