@@ -110,6 +110,7 @@ Cerrar la entrega final con trazabilidad demostrable, memoria persistente por ch
   - Definir una versión explícita para `config/systemprompt.md`.
   - Registrar `System Prompt version` en trazas y reportes de benchmarks.
   - Guardar copia historica en `config/prompts/systemprompt-0.0.1.md`.
+  - Resolver prompt activo por `SYSTEM_PROMPT_PATH`, luego `SYSTEM_PROMPT_VERSION`, y fallback a `config/systemprompt.md`.
   - Usar la versión para comparar corridas cuando cambien prompt, modelo, datos o tools.
   - Documentar cuándo se incrementa la versión del prompt.
 

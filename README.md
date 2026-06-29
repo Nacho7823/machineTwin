@@ -36,6 +36,7 @@ LLM_BASE_URL=https://api.kilo.ai/api/gateway/
 LLM_MODEL=stepfun/step-3.7-flash:free
 LLM_API_KEY=
 SYSTEM_PROMPT_VERSION=0.0.1
+SYSTEM_PROMPT_PATH=
 WEB_HOST=0.0.0.0
 WEB_PORT=8000
 ```
@@ -48,9 +49,16 @@ Para cambiar a otro proveedor compatible con OpenAI, editar `.env` y ajustar:
 - `LLM_MODEL`: modelo a utilizar.
 - `LLM_API_KEY`: API key del proveedor, si corresponde.
 - `SYSTEM_PROMPT_VERSION`: version funcional del system prompt usada en trazas y reportes.
+- `SYSTEM_PROMPT_PATH`: ruta explicita opcional del system prompt. Si se define, tiene prioridad sobre `SYSTEM_PROMPT_VERSION`.
 - `WEB_HOST` y `WEB_PORT`: host y puerto del backend web.
 
-El prompt activo se mantiene en `config/systemprompt.md`. Las copias historicas versionadas se guardan en `config/prompts/`, por ejemplo `config/prompts/systemprompt-0.0.1.md`.
+El prompt activo se resuelve en este orden:
+
+1. Si `SYSTEM_PROMPT_PATH` esta definido, se usa ese archivo.
+2. Si no, se busca `config/prompts/systemprompt-{SYSTEM_PROMPT_VERSION}.md`.
+3. Si no existe esa version, se usa el fallback historico `config/systemprompt.md`.
+
+Las copias historicas versionadas se guardan en `config/prompts/`, por ejemplo `config/prompts/systemprompt-0.0.1.md`. Para crear una nueva version, agregar un archivo como `config/prompts/systemprompt-0.0.2.md` y configurar `SYSTEM_PROMPT_VERSION=0.0.2`.
 
 Para persistir memoria conversacional y trazas en PostgreSQL, configurar:
 
