@@ -7,5 +7,6 @@
   ],
   "user_query": "Hay variables fuera de rango?",
   "expected_tools": ["detectar_fuera_de_limites"],
+  "judge_metrics": ["faithfulness", "answer_relevance"],
   "expected_output": "El agente identifica por maquina si las variables estan normales, fuera de rango optimo, fuera de rango operativo o sin datos, sin inventar rangos."
 }

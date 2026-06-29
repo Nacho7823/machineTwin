@@ -22,6 +22,30 @@ def _measure_all(trace, expected_output, model):
     }
 
 
+def _measure_selected(trace, expected_output, model, metric_names):
+    available = {
+        "faithfulness": lambda: benchmarks.benchmark_fairthfulness(trace, model=model),
+        "answer_relevance": lambda: benchmarks.benchmark_answer_relevance(trace, model=model),
+        "context_precision": lambda: benchmarks.benchmark_context_precision(trace, expected_output, model=model),
+        "context_recall": lambda: benchmarks.benchmark_context_recall(trace, expected_output, model=model),
+    }
+    scores = {name: None for name in available}
+    for name in metric_names:
+        if name not in available:
+            print(f"  - Metrica desconocida ignorada: {name}")
+            continue
+        scores[name] = available[name]()
+    return scores
+
+
+def _case_judge_metrics(configs):
+    if benchmarks.JUDGE_MODE == "off":
+        return []
+    if benchmarks.JUDGE_MODE == "all":
+        return ["faithfulness", "answer_relevance", "context_precision", "context_recall"]
+    return configs.get("judge_metrics", [])
+
+
 def _tools_ok(trace, expected_tools):
     if not expected_tools:
         return True
@@ -55,6 +79,7 @@ def _build_report(status, results, case_reports, total_cases):
         "status": status,
         "agent_model": config.LLM_MODEL,
         "judge_model": benchmarks.JUDGE_LLM_MODEL,
+        "judge_mode": benchmarks.JUDGE_MODE,
         "second_judge_model": benchmarks.SECOND_JUDGE_LLM_MODEL or None,
         "judge_metric_timeout_seconds": benchmarks.JUDGE_METRIC_TIMEOUT_SECONDS,
         "System Prompt version": config.SYSTEM_PROMPT_VERSION,
@@ -125,10 +150,11 @@ def test():
         print("-" * 40)
 
         expected_output = configs.get("expected_output", "")
-        metric_scores = _measure_all(trace, expected_output, benchmarks.JUDGE_LLM_MODEL)
+        judge_metrics = _case_judge_metrics(configs)
+        metric_scores = _measure_selected(trace, expected_output, benchmarks.JUDGE_LLM_MODEL, judge_metrics)
         second_scores = None
-        if benchmarks.SECOND_JUDGE_LLM_MODEL:
-            second_scores = _measure_all(trace, expected_output, benchmarks.SECOND_JUDGE_LLM_MODEL)
+        if benchmarks.SECOND_JUDGE_LLM_MODEL and judge_metrics:
+            second_scores = _measure_selected(trace, expected_output, benchmarks.SECOND_JUDGE_LLM_MODEL, judge_metrics)
 
         faithfulness_score = metric_scores["faithfulness"]
         answer_relevance_score = metric_scores["answer_relevance"]
@@ -175,6 +201,7 @@ def test():
             "second_judge_metrics": second_scores,
             "metric_average": metric_average,
             "expected_tools": configs.get("expected_tools", []),
+            "judge_metrics": judge_metrics,
             "deterministic_checks": deterministic_checks,
             "approved": approved,
         })

@@ -7,5 +7,6 @@
   ],
   "user_query": "Mostrame el detalle de las alertas registradas.",
   "expected_tools": ["consultar_eventos_recientes"],
+  "judge_metrics": ["faithfulness", "answer_relevance"],
   "expected_output": "El agente muestra fecha, maquina, tipo, severidad y descripcion de alertas, sin mostrar resolved ni sugerir que pueden marcarse como resueltas."
 }

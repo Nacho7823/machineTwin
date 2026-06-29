@@ -28,6 +28,7 @@ def load_folder(folder_path):
         "sim_archives": data,
         "expected_output": expected_output,
         "expected_tools": test_config.get("expected_tools", []),
+        "judge_metrics": test_config.get("judge_metrics", []),
         "minimum_score": test_config.get("minimum_score", 0.7),
     }, user_query
 

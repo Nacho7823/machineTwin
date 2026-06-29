@@ -7,5 +7,6 @@
   ],
   "user_query": "Que recomendacion de mantenimiento podes dar para estas maquinas?",
   "expected_tools": ["consultar_documentacion"],
+  "judge_metrics": ["faithfulness", "answer_relevance", "context_precision"],
   "expected_output": "El agente da recomendaciones de mantenimiento basadas en documentacion tecnica y aclara cuando falta informacion."
 }

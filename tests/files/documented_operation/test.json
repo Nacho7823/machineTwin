@@ -8,5 +8,6 @@
   ],
   "user_query": "Como deberia operar estas maquinas en condiciones normales?",
   "expected_tools": ["consultar_documentacion"],
+  "judge_metrics": ["faithfulness", "answer_relevance", "context_precision"],
   "expected_output": "El agente resume operacion recomendada por maquina usando documentacion tecnica disponible y evita inventar procedimientos no documentados."
 }

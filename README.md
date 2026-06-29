@@ -245,8 +245,21 @@ para correr los tests:
 python -m tests
 ```
 
-Se usa LLM-as-a-judge. el modelo esta definido en benchmarks.py.
-Se debe cambiar el modelo para obtener resultados no sesgados. Tambien se puede configurar un segundo juez:
+La corrida por defecto usa `JUDGE_MODE=selected`: ejecuta los 20 casos, aplica checks deterministas a todos y solo usa LLM-as-a-judge en los casos/metricas declarados con `judge_metrics` dentro de cada `tests/files/*/test.json`. Esto reduce el consumo de cuota del modelo sin perder cobertura funcional critica.
+
+Para correr sin LLM-as-a-judge:
+
+```bash
+JUDGE_MODE=off python -m tests
+```
+
+Para correr una evaluacion exhaustiva con las cuatro metricas en todos los casos:
+
+```bash
+JUDGE_MODE=all python -m tests
+```
+
+La evaluacion exhaustiva puede consumir muchas llamadas al modelo y agotar limites gratuitos. El modelo juez esta definido en `tests/benchmarks.py`. Se debe cambiar el modelo para obtener resultados no sesgados. Tambien se puede configurar un segundo juez:
 
 ```bash
 SECOND_JUDGE_LLM_MODEL=otro/modelo python -m tests

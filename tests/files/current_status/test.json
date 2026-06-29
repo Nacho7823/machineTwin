@@ -7,5 +7,6 @@
   ],
   "user_query": "Dame el estado actual de las maquinas.",
   "expected_tools": ["obtener_estado_actual"],
+  "judge_metrics": ["faithfulness", "answer_relevance"],
   "expected_output": "El agente informa las maquinas detectadas, estado operativo, variables actuales, valores y unidades."
 }
