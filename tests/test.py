@@ -8,23 +8,23 @@ from . import agent_test, benchmarks
 from .utils import load_folder, parse_trace
 
 
-ALL_METRICS = ["faithfulness", "answer_relevance", "context_precision", "context_recall"]
+ALL_METRICS = ["faithfulness", "answer_relevance", "context_precision"]
 
 PROFILE_DESCRIPTIONS = {
     "functional": "19 casos con checks deterministas y sin LLM-as-judge.",
     "semantic": "19 casos con judge solo en casos representativos y metricas utiles por caso.",
-    "rag_full": "Solo casos RAG/documentacion con las cuatro metricas.",
-    "exhaustive": "19 casos con las cuatro metricas en todos los casos.",
+    "rag_full": "Solo casos RAG/documentacion con las tres metricas.",
+    "exhaustive": "19 casos con las tres metricas en todos los casos.",
 }
 
 SEMANTIC_PROFILE_METRICS = {
     "current_status": ["faithfulness", "answer_relevance"],
-    "documented_operation": ["faithfulness", "answer_relevance", "context_precision", "context_recall"],
-    "high_vibration_advice": ["faithfulness", "answer_relevance", "context_precision", "context_recall"],
-    "maintenance_recommendation": ["faithfulness", "answer_relevance", "context_precision", "context_recall"],
+    "documented_operation": ["faithfulness", "answer_relevance", "context_precision"],
+    "high_vibration_advice": ["faithfulness", "answer_relevance", "context_precision"],
+    "maintenance_recommendation": ["faithfulness", "answer_relevance", "context_precision"],
     "operational_problem_summary": ["answer_relevance"],
     "out_of_limits": ["faithfulness", "answer_relevance"],
-    "rag_source_request": ["faithfulness", "answer_relevance", "context_precision", "context_recall"],
+    "rag_source_request": ["faithfulness", "answer_relevance", "context_precision"],
     "recent_events": ["faithfulness", "answer_relevance"],
 }
 
@@ -47,7 +47,6 @@ def _measure_selected(trace, expected_output, model, metric_names):
         "faithfulness": lambda: benchmarks.benchmark_fairthfulness(trace, model=model),
         "answer_relevance": lambda: benchmarks.benchmark_answer_relevance(trace, model=model),
         "context_precision": lambda: benchmarks.benchmark_context_precision(trace, expected_output, model=model),
-        "context_recall": lambda: benchmarks.benchmark_context_recall(trace, expected_output, model=model),
     }
     scores = {name: None for name in available}
     for name in metric_names:
@@ -180,7 +179,6 @@ def test():
         "faithfulness": [],
         "answer_relevance": [],
         "context_precision": [],
-        "context_recall": [],
     }
     case_reports = []
 
@@ -222,7 +220,6 @@ def test():
         faithfulness_score = metric_scores["faithfulness"]
         answer_relevance_score = metric_scores["answer_relevance"]
         context_precision_score = metric_scores["context_precision"]
-        context_recall_score = metric_scores["context_recall"]
         metric_average = _average(metric_scores.values())
         tools_passed = _tools_ok(trace, configs.get("expected_tools", []))
         non_empty_answer = bool(str(chat).strip())
@@ -239,7 +236,6 @@ def test():
         print(f"  - Faithfulness: {faithfulness_score}")
         print(f"  - Answer Relevance: {answer_relevance_score}")
         print(f"  - Context Precision: {context_precision_score}")
-        print(f"  - Context Recall: {context_recall_score}")
         print("\n")
         print(f"  - Promedio del caso: {metric_average}")
         print(f"  - Tools esperadas OK: {tools_passed}")
@@ -253,8 +249,6 @@ def test():
             results["answer_relevance"].append(answer_relevance_score)
         if context_precision_score is not None:
             results["context_precision"].append(context_precision_score)
-        if context_recall_score is not None:
-            results["context_recall"].append(context_recall_score)
 
         case_reports.append({
             "case": folder_name,

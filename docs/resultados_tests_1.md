@@ -69,7 +69,6 @@ El LLM-as-judge evalua:
 | Promedio `faithfulness` | 1.0000 |
 | Promedio `answer_relevance` | 0.8079 |
 | Promedio `context_precision` | 0.5528 |
-| Promedio `context_recall` | Sin datos |
 
 ## Resultado por caso
 

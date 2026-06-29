@@ -9,14 +9,14 @@ La estrategia recomendada usa `TEST_PROFILE=semantic`:
 - Usa LLM-as-a-judge solo en casos representativos.
 - Usa solo las metricas que aportan valor por tipo de caso.
 
-Esto permite comparar resultados entre modelos y prompts con mucho menos consumo que `TEST_PROFILE=exhaustive`, que calcula las cuatro metricas en los 19 casos.
+Esto permite comparar resultados entre modelos y prompts con mucho menos consumo que `TEST_PROFILE=exhaustive`, que calcula las tres metricas en los 19 casos.
 
 ## Perfiles disponibles
 
 - `TEST_PROFILE=functional`: 19 casos sin LLM-as-a-judge. Sirve como smoke test rapido de tools, flujo y respuestas no vacias.
 - `TEST_PROFILE=semantic`: 19 casos con juez selectivo. Es el perfil recomendado para la comparacion principal.
-- `TEST_PROFILE=rag_full`: solo casos RAG/documentacion con las cuatro metricas.
-- `TEST_PROFILE=exhaustive`: 19 casos con las cuatro metricas. Es una corrida pesada y experimental.
+- `TEST_PROFILE=rag_full`: solo casos RAG/documentacion con las tres metricas.
+- `TEST_PROFILE=exhaustive`: 19 casos con las tres metricas. Es una corrida pesada y experimental.
 
 Cuando `TEST_PROFILE` esta definido, tiene prioridad sobre `JUDGE_MODE`. El reporte JSON guarda `test_profile`, `agent_model`, `judge_model`, `System Prompt version` y `prompt_hash`.
 
@@ -25,19 +25,19 @@ Cuando `TEST_PROFILE` esta definido, tiene prioridad sobre `JUDGE_MODE`. El repo
 En `TEST_PROFILE=semantic`, los 19 casos se ejecutan, pero solo estos usan juez:
 
 - `current_status`: `faithfulness`, `answer_relevance`
-- `documented_operation`: `faithfulness`, `answer_relevance`, `context_precision`, `context_recall`
-- `high_vibration_advice`: `faithfulness`, `answer_relevance`, `context_precision`, `context_recall`
-- `maintenance_recommendation`: `faithfulness`, `answer_relevance`, `context_precision`, `context_recall`
+- `documented_operation`: `faithfulness`, `answer_relevance`, `context_precision`
+- `high_vibration_advice`: `faithfulness`, `answer_relevance`, `context_precision`
+- `maintenance_recommendation`: `faithfulness`, `answer_relevance`, `context_precision`
 - `operational_problem_summary`: `answer_relevance`
 - `out_of_limits`: `faithfulness`, `answer_relevance`
-- `rag_source_request`: `faithfulness`, `answer_relevance`, `context_precision`, `context_recall`
+- `rag_source_request`: `faithfulness`, `answer_relevance`, `context_precision`
 - `recent_events`: `faithfulness`, `answer_relevance`
 
 Los demas casos quedan evaluados por checks deterministas. Esto cubre seguridad de dominio, memoria conversacional, uso de tools, respuestas no vacias y flujo funcional sin gastar llamadas adicionales del juez.
 
 ## Casos incluidos en rag_full
 
-`TEST_PROFILE=rag_full` ejecuta solo estos casos, todos con las cuatro metricas:
+`TEST_PROFILE=rag_full` ejecuta solo estos casos, todos con las tres metricas:
 
 - `documented_operation`
 - `maintenance_recommendation`
@@ -142,13 +142,13 @@ Para revisar rapidamente que los 19 casos siguen funcionando sin gastar juez:
 TEST_PROFILE=functional .venv/bin/python -m tests
 ```
 
-Para profundizar solo los casos de documentacion/RAG con las cuatro metricas:
+Para profundizar solo los casos de documentacion/RAG con las tres metricas:
 
 ```bash
 TEST_PROFILE=rag_full .venv/bin/python -m tests
 ```
 
-Para repetir la suite completa con las cuatro metricas en todos los casos:
+Para repetir la suite completa con las tres metricas en todos los casos:
 
 ```bash
 TEST_PROFILE=exhaustive .venv/bin/python -m tests

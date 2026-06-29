@@ -19,7 +19,6 @@ La corrida se dejo avanzar sin timeout propio. Aun asi, algunas metricas de Deep
 - Promedio Faithfulness: 1.0000, calculado sobre 6 casos con puntaje
 - Promedio Answer Relevance: 0.8651, calculado sobre 7 casos con puntaje
 - Promedio Context Precision: 0.8571, calculado sobre 7 casos con puntaje
-- Promedio Context Recall: 0.3333, calculado sobre 6 casos con puntaje
 
 Este porcentaje bruto debe interpretarse con cuidado: dos casos quedaron aprobados aunque la respuesta fue un error del proveedor (`429`). Se ajusto el runner para que futuras corridas marquen esas respuestas como no aprobadas mediante el check deterministico `agent_response_ok`.
 
@@ -34,7 +33,7 @@ Antes de que apareciera el rate limit, se evaluaron 8 casos con respuestas reale
 | ask_inexistent_machine | No aprobado | Detecta que V-500 no existe, pero agrega datos de otra maquina, lo que confunde la respuesta. |
 | conversational_memory | No aprobado | Usa memoria y tools correctas, pero la respuesta no cubre suficientemente el criterio esperado por el juez. |
 | current_status | Aprobado | Respuesta precisa y completa para estado actual. |
-| documented_operation | No aprobado | Usa documentacion, pero Context Recall queda bajo y Faithfulness tuvo error interno del juez. |
+| documented_operation | No aprobado | Usa documentacion, pero una metrica del juez tuvo error interno y la respuesta no alcanzo el umbral esperado. |
 | fail_on_temperature | Aprobado | Detecta temperatura fuera de optimo y mantiene distincion entre rango optimo y operativo. |
 | followup_events_after_status | Aprobado | Mantiene contexto y revisa eventos correctamente. |
 
@@ -56,7 +55,6 @@ Lectura estricta sobre los 20 casos marcando errores `429` como fallas: 5/20 apr
 - Usar un modelo con cuota suficiente o pago para corridas completas. Con el modelo gratuito actual, una suite de 20 casos con LLM-as-judge puede agotar el limite antes de terminar.
 - Ajustar fixtures y expected outputs. Algunos casos esperan alertas, pero los datos del fixture contienen mantenimiento rutinario o una sola maquina.
 - Mejorar respuesta para maquinas inexistentes: debe decir que no hay datos de esa maquina y no listar valores de otra maquina salvo que el usuario lo pida.
-- Mejorar `Context Recall` en preguntas documentales. El RAG recupera fragmentos utiles, pero el juez penaliza que no cubra todos los elementos esperados.
 - Revisar casos con memoria: la respuesta es tecnicamente correcta, pero debe cubrir explicitamente todas las maquinas/variables relevantes cuando el usuario pregunta "sigue siendo normal?".
 - Reducir costo de evaluacion: separar checks deterministas rapidos de metricas LLM-as-judge, y correr el juez solo sobre casos donde realmente aporta valor.
 

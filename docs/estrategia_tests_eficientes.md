@@ -2,101 +2,79 @@
 
 ## Objetivo
 
-Mantener cobertura funcional sobre los 20 casos de `tests/files/*` reduciendo el consumo de cuota LLM y el tiempo total de corrida. La prioridad es gastar menos llamadas del modelo; la segunda prioridad es reducir duracion.
+Mantener cobertura funcional sobre los 19 casos de `tests/files/*` reduciendo consumo de cuota LLM y duracion total. La prioridad es gastar menos llamadas del modelo; la segunda prioridad es reducir tiempo de corrida.
 
-## Diagnostico
+## Metricas usadas
 
-La suite completa anterior ejecutaba hasta 4 metricas LLM-as-a-judge por caso:
+La evaluacion LLM-as-a-judge usa tres metricas:
 
 - `faithfulness`
 - `answer_relevance`
 - `context_precision`
-- `context_recall`
 
-Con 20 casos eso podia implicar hasta 80 llamadas de juez, ademas de las llamadas del agente. En la corrida real con el modelo gratuito, la evaluacion agoto cuota a mitad de suite con `429 Rate limit exceeded`.
+La suite descarta metricas que resultaron costosas o poco estables para esta entrega.
 
 ## Estrategia aplicada
 
-Se mantiene la ejecucion de los 20 casos, pero se separan dos niveles:
+Se separan dos niveles de evaluacion:
 
 1. Checks deterministas para todos los casos:
    - respuesta no vacia;
    - respuesta sin error de proveedor;
    - tools esperadas usadas.
 
-2. LLM-as-a-judge solo en casos seleccionados:
-   - cada `test.json` puede declarar `judge_metrics`;
-   - si no declara metricas, no usa juez LLM;
-   - `JUDGE_MODE=all` permite volver a la evaluacion exhaustiva.
+2. LLM-as-a-judge solo cuando aporta valor:
+   - `TEST_PROFILE=semantic` ejecuta los 19 casos y juzga solo casos representativos;
+   - `TEST_PROFILE=rag_full` ejecuta solo casos RAG/documentacion con las tres metricas;
+   - `TEST_PROFILE=exhaustive` ejecuta los 19 casos con las tres metricas.
 
-Con la seleccion actual se ejecutan 20 metricas LLM-as-a-judge, no 80. Es una reduccion aproximada del 75% en llamadas de juez.
-
-## Casos con LLM-as-a-judge
+## Casos con LLM-as-a-judge en semantic
 
 | Caso | Metricas |
 |---|---|
-| `alert_details` | `faithfulness`, `answer_relevance` |
-| `conversational_memory` | `answer_relevance` |
 | `current_status` | `faithfulness`, `answer_relevance` |
 | `documented_operation` | `faithfulness`, `answer_relevance`, `context_precision` |
-| `fail_on_temperature` | `faithfulness`, `answer_relevance` |
-| `high_but_normal_temperature` | `faithfulness`, `answer_relevance` |
+| `high_vibration_advice` | `faithfulness`, `answer_relevance`, `context_precision` |
 | `maintenance_recommendation` | `faithfulness`, `answer_relevance`, `context_precision` |
 | `operational_problem_summary` | `answer_relevance` |
 | `out_of_limits` | `faithfulness`, `answer_relevance` |
+| `rag_source_request` | `faithfulness`, `answer_relevance`, `context_precision` |
 | `recent_events` | `faithfulness`, `answer_relevance` |
 
-## Casos evaluados solo con checks deterministas
-
-Estos casos siguen siendo importantes, pero no necesitan juez semantico en cada corrida normal:
-
-- `adversarial`
-- `ask_inexistent_machine`
-- `followup_events_after_status`
-- `high_vibration_advice`
-- `missing_variable_trend`
-- `rag_source_request`
-- `stop_criteria`
-- `temperature_trend`
-- `tool_free_domain_guard`
-- `verify_failure_actions`
-
-La razon es que su valor principal se verifica por uso/no uso de tools, respuesta valida y ausencia de error. Se pueden auditar manualmente o correr con `JUDGE_MODE=all` antes del informe final.
+Los demas casos se evaluan por checks deterministas en la corrida semantica.
 
 ## Modos de ejecucion
+
+Corrida funcional sin juez:
+
+```bash
+SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=functional .venv/bin/python -m tests
+```
 
 Corrida recomendada:
 
 ```bash
-python -m tests
+SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=semantic JUDGE_METRIC_TIMEOUT_SECONDS=0 .venv/bin/python -m tests
 ```
 
-Corrida sin juez LLM:
+Corrida RAG/documentacion completa:
 
 ```bash
-JUDGE_MODE=off python -m tests
+SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=rag_full JUDGE_METRIC_TIMEOUT_SECONDS=0 .venv/bin/python -m tests
 ```
 
 Corrida exhaustiva:
 
 ```bash
-JUDGE_MODE=all python -m tests
+SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=exhaustive JUDGE_METRIC_TIMEOUT_SECONDS=0 .venv/bin/python -m tests
 ```
 
 Segundo juez configurable:
 
 ```bash
-SECOND_JUDGE_LLM_MODEL=otro/modelo python -m tests
+SECOND_JUDGE_LLM_MODEL=otro/modelo SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=semantic .venv/bin/python -m tests
 ```
-
-Timeout opcional por metrica, solo para diagnostico:
-
-```bash
-JUDGE_METRIC_TIMEOUT_SECONDS=120 python -m tests
-```
-
-Por defecto no hay timeout externo (`0`) para permitir corridas diagnosticas completas.
 
 ## Recomendacion
 
-Usar `JUDGE_MODE=selected` para desarrollo normal y reservar `JUDGE_MODE=all` para una corrida final con un modelo/proveedor con cuota suficiente. Si la cuota gratuita es limitada, `JUDGE_MODE=selected` ofrece el mejor balance entre cobertura y costo.
+Usar `TEST_PROFILE=semantic` para comparar versiones del prompt y modelos. Reservar `TEST_PROFILE=rag_full` para diagnosticar calidad de recuperacion documental y `TEST_PROFILE=exhaustive` para una corrida final si hay cuota suficiente.

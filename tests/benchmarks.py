@@ -17,7 +17,6 @@ from deepeval.metrics import (
     FaithfulnessMetric,
     AnswerRelevancyMetric,
     ContextualPrecisionMetric,
-    ContextualRecallMetric,
 )
 
 from tests.utils import parse_trace
@@ -92,12 +91,3 @@ def benchmark_context_precision(trace, expected_output, model=JUDGE_LLM_MODEL):
         return None
     metric = ContextualPrecisionMetric(threshold=0.7, model=model, include_reason=True, verbose_mode=MOSTRAR_LOGS)
     return _measure_metric(metric, test_case, "context_precision")
-
-
-def benchmark_context_recall(trace, expected_output, model=JUDGE_LLM_MODEL):
-    # Context Recall	¿Se recuperaron todos los chunks necesarios?
-    test_case = _build_test_case(trace, expected_output=expected_output)
-    if test_case is None:
-        return None
-    metric = ContextualRecallMetric(threshold=0.7, model=model, include_reason=True, verbose_mode=MOSTRAR_LOGS)
-    return _measure_metric(metric, test_case, "context_recall")

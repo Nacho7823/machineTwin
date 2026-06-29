@@ -289,7 +289,7 @@ JUDGE_METRIC_TIMEOUT_SECONDS=0 \
 .venv/bin/python -m tests
 ```
 
-Corrida RAG completa. Ejecuta solo casos de documentacion/RAG y calcula las cuatro metricas:
+Corrida RAG completa. Ejecuta solo casos de documentacion/RAG y calcula las tres metricas:
 
 ```bash
 SYSTEM_PROMPT_VERSION=0.0.2 \
@@ -298,7 +298,7 @@ JUDGE_METRIC_TIMEOUT_SECONDS=0 \
 .venv/bin/python -m tests
 ```
 
-Corrida exhaustiva. Ejecuta los 19 casos con las cuatro metricas; es costosa y queda como corrida experimental:
+Corrida exhaustiva. Ejecuta los 19 casos con las tres metricas; es costosa y queda como corrida experimental:
 
 ```bash
 SYSTEM_PROMPT_VERSION=0.0.2 \
