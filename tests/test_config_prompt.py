@@ -1,14 +1,12 @@
 import config
+import pytest
 
 
 def reload_config(monkeypatch, tmp_path, *, version=None, prompt_path=None):
     prompts_dir = tmp_path / "config" / "prompts"
     prompts_dir.mkdir(parents=True, exist_ok=True)
-    legacy = tmp_path / "config" / "systemprompt.md"
-    legacy.write_text("legacy", encoding="utf-8")
     monkeypatch.setattr(config, "BASE_DIR", tmp_path)
     monkeypatch.setattr(config, "PROMPTS_DIR", prompts_dir)
-    monkeypatch.setattr(config, "LEGACY_SYSTEM_PROMPT_PATH", legacy)
     if version is None:
         monkeypatch.delenv("SYSTEM_PROMPT_VERSION", raising=False)
     else:
@@ -46,8 +44,6 @@ def test_system_prompt_path_overrides_version(monkeypatch, tmp_path):
     assert version == "0.0.2"
 
 
-def test_system_prompt_falls_back_to_legacy(monkeypatch, tmp_path):
-    path, version = reload_config(monkeypatch, tmp_path, version="9.9.9")
-
-    assert path == tmp_path / "config" / "systemprompt.md"
-    assert version == "9.9.9"
+def test_system_prompt_missing_version_fails(monkeypatch, tmp_path):
+    with pytest.raises(FileNotFoundError, match="system prompt versionado"):
+        reload_config(monkeypatch, tmp_path, version="9.9.9")

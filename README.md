@@ -79,7 +79,6 @@ El prompt activo se resuelve en este orden:
 
 1. Si `SYSTEM_PROMPT_PATH` esta definido, se usa ese archivo.
 2. Si no, se busca `config/prompts/systemprompt-{SYSTEM_PROMPT_VERSION}.md`.
-3. Si no existe esa version, se usa el fallback historico `config/systemprompt.md`.
 
 Las copias historicas versionadas se guardan en `config/prompts/`, por ejemplo `config/prompts/systemprompt-0.0.1.md`. Para crear una nueva version, agregar un archivo como `config/prompts/systemprompt-0.0.2.md` y configurar `SYSTEM_PROMPT_VERSION=0.0.2`.
 
@@ -236,7 +235,7 @@ El script guarda salidas de Docker, estado de migraciones y respuestas de endpoi
 La guia de evaluacion manual esta en:
 
 ```text
-docs/casos_prueba.md
+docs/tests/casos_prueba.md
 ```
 
 Usar esos casos con el simulador corriendo y, segun corresponda, con la aplicacion web o la interfaz de terminal.
@@ -255,7 +254,7 @@ Usar esos casos con el simulador corriendo y, segun corresponda, con la aplicaci
 - `simulator/`: simulador de maquinas y configuraciones.
 - `rag/`: implementacion del RAG.
 - `docs-machines/`: documentacion tecnica de maquinas usada por el RAG.
-- `docs/casos_prueba.md`: casos de prueba manuales para la Entrega 2.
+- `docs/tests/casos_prueba.md`: casos de prueba manuales para la Entrega 2.
 - `data/`: archivos generados por el simulador.
 - `logs/`: logs y trazas generadas por la aplicacion.
 

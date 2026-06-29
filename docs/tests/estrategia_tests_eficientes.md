@@ -55,13 +55,13 @@ SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=functional .venv/bin/python -m tests
 Corrida recomendada:
 
 ```bash
-SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=semantic_rag JUDGE_METRIC_TIMEOUT_SECONDS=0 .venv/bin/python -m tests
+SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=semantic_rag .venv/bin/python -m tests
 ```
 
 Corrida exhaustiva:
 
 ```bash
-SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=exhaustive JUDGE_METRIC_TIMEOUT_SECONDS=0 .venv/bin/python -m tests
+SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=exhaustive .venv/bin/python -m tests
 ```
 
 Segundo juez configurable:

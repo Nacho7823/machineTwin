@@ -17,7 +17,7 @@ Esto permite comparar resultados entre modelos y prompts con mucho menos consumo
 - `TEST_PROFILE=semantic_rag`: 19 casos con juez selectivo semantico y RAG. Es el perfil recomendado para la comparacion principal.
 - `TEST_PROFILE=exhaustive`: 19 casos con las tres metricas. Es una corrida pesada y experimental.
 
-Cuando `TEST_PROFILE` esta definido, tiene prioridad sobre `JUDGE_MODE`. El reporte JSON guarda `test_profile`, `agent_model`, `judge_model`, `System Prompt version` y `prompt_hash`.
+El reporte JSON guarda `test_profile`, `agent_model`, `judge_model`, `System Prompt version` y `prompt_hash`.
 
 ## Casos juzgados en semantic_rag
 
@@ -56,7 +56,6 @@ time env \
   SYSTEM_PROMPT_VERSION=0.0.1 \
   SYSTEM_PROMPT_PATH= \
   TEST_PROFILE=semantic_rag \
-  JUDGE_METRIC_TIMEOUT_SECONDS=0 \
   LLM_MODEL=nvidia/nemotron-3-super-120b-a12b \
   LLM_TEMPERATURE=1 \
   LLM_TOP_P=0.95 \
@@ -75,7 +74,6 @@ time env \
   SYSTEM_PROMPT_VERSION=0.0.2 \
   SYSTEM_PROMPT_PATH= \
   TEST_PROFILE=semantic_rag \
-  JUDGE_METRIC_TIMEOUT_SECONDS=0 \
   LLM_MODEL=nvidia/nemotron-3-super-120b-a12b \
   LLM_TEMPERATURE=1 \
   LLM_TOP_P=0.95 \
@@ -94,7 +92,6 @@ time env \
   SYSTEM_PROMPT_VERSION=0.0.1 \
   SYSTEM_PROMPT_PATH= \
   TEST_PROFILE=semantic_rag \
-  JUDGE_METRIC_TIMEOUT_SECONDS=0 \
   LLM_MODEL=meta/llama-3.3-70b-instruct \
   LLM_TEMPERATURE=0.2 \
   LLM_TOP_P=0.7 \
@@ -113,7 +110,6 @@ time env \
   SYSTEM_PROMPT_VERSION=0.0.2 \
   SYSTEM_PROMPT_PATH= \
   TEST_PROFILE=semantic_rag \
-  JUDGE_METRIC_TIMEOUT_SECONDS=0 \
   LLM_MODEL=meta/llama-3.3-70b-instruct \
   LLM_TEMPERATURE=0.2 \
   LLM_TOP_P=0.7 \
@@ -143,5 +139,5 @@ TEST_PROFILE=exhaustive .venv/bin/python -m tests
 
 - `semantic_rag` es el perfil principal para comparar prompts y modelos: todos los casos se ejecutan, pero no todos consumen juez.
 - Los casos sin juez se evaluan con checks deterministas: respuesta no vacia, ausencia de errores de agente y uso de tools esperadas.
-- `JUDGE_METRIC_TIMEOUT_SECONDS=0` desactiva el timeout externo del runner. El timeout por llamada al proveedor queda controlado por `LLM_TIMEOUT`.
+- El timeout por llamada al proveedor queda controlado por `LLM_TIMEOUT`.
 - Cada corrida genera un reporte JSON nuevo en `tests/reports/`.

@@ -9,7 +9,6 @@ DATA_DIR = BASE_DIR / "data"
 LOGS_DIR = BASE_DIR / "logs"
 DOCS_DIR = BASE_DIR / "docs-machines"
 PROMPTS_DIR = BASE_DIR / "config" / "prompts"
-LEGACY_SYSTEM_PROMPT_PATH = BASE_DIR / "config" / "systemprompt.md"
 DEFAULT_SYSTEM_PROMPT_VERSION = "0.0.2"
 
 
@@ -55,7 +54,7 @@ def _resolve_system_prompt() -> tuple[Path, str]:
     if versioned_path.exists():
         return versioned_path, requested_version
 
-    return LEGACY_SYSTEM_PROMPT_PATH, requested_version
+    raise FileNotFoundError(f"No existe system prompt versionado: {versioned_path}")
 
 
 SYSTEM_PROMPT_PATH, SYSTEM_PROMPT_VERSION = _resolve_system_prompt()
