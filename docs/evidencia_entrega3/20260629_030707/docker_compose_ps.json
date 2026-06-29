@@ -1,0 +1,10 @@
+{
+  "command": [
+    "docker",
+    "compose",
+    "ps"
+  ],
+  "returncode": 0,
+  "stdout": "NAME                   IMAGE                COMMAND                  SERVICE    CREATED          STATUS                    PORTS\nmachinetwin-postgres   postgres:16-alpine   \"docker-entrypoint.s…\"   postgres   42 minutes ago   Up 42 minutes (healthy)   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp\n",
+  "stderr": ""
+}

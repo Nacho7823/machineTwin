@@ -35,6 +35,9 @@ La aplicacion usa LangChain con un proveedor compatible con OpenAI. La configura
 LLM_BASE_URL=https://api.kilo.ai/api/gateway/
 LLM_MODEL=stepfun/step-3.7-flash:free
 LLM_API_KEY=
+PROMPT_VERSION=entrega3-v1
+WEB_HOST=0.0.0.0
+WEB_PORT=8000
 ```
 
 En esta configuracion `LLM_API_KEY` puede quedar vacio.
@@ -44,6 +47,49 @@ Para cambiar a otro proveedor compatible con OpenAI, editar `.env` y ajustar:
 - `LLM_BASE_URL`: URL base del proveedor.
 - `LLM_MODEL`: modelo a utilizar.
 - `LLM_API_KEY`: API key del proveedor, si corresponde.
+- `PROMPT_VERSION`: version funcional del system prompt usada en trazas y reportes.
+- `WEB_HOST` y `WEB_PORT`: host y puerto del backend web.
+
+Para persistir memoria conversacional y trazas en PostgreSQL, configurar:
+
+```env
+POSTGRES_DB=machinetwin
+POSTGRES_USER=machinetwin
+POSTGRES_PASSWORD=machinetwin
+POSTGRES_PORT=5432
+DATABASE_URL=postgresql://machinetwin:machinetwin@localhost:5432/machinetwin
+```
+
+Si `DATABASE_URL` no esta definido, la aplicacion usa memoria en proceso para desarrollo local.
+
+## Base de datos PostgreSQL
+
+La entrega final usa PostgreSQL como persistencia principal para conversaciones, mensajes y trazas. Para levantar una base local portable con Docker:
+
+```bash
+docker compose up -d postgres
+```
+
+Con `.env` configurado, aplicar las migraciones antes de iniciar la app:
+
+```bash
+python -m db migrate
+```
+
+Para revisar el estado de migraciones:
+
+```bash
+python -m db status
+```
+
+Para borrar las tablas de desarrollo y volver a migrar desde cero:
+
+```bash
+python -m db reset --yes
+python -m db migrate
+```
+
+La aplicacion no crea el esquema automaticamente al iniciar: si falta una tabla, muestra un error indicando que se debe ejecutar `python -m db migrate`. Esto evita que el esquema de entrega dependa de efectos laterales ocultos.
 
 ## Ejecucion del simulador
 
@@ -79,6 +125,11 @@ La app web queda disponible en:
 ```text
 http://localhost:8000
 ```
+
+La interfaz incluye dos vistas:
+
+- `Chat`: conversacion principal con el agente.
+- `Trazas`: inspeccion de conversaciones persistidas, mensajes, eventos y tools ejecutadas.
 
 ## Uso en terminal
 
@@ -122,7 +173,30 @@ El agente expone estas tools publicas:
 
 La aplicacion registra informacion de ejecucion en `logs/app.log`. Las trazas del agente se guardan en `logs/traces.jsonl`, en formato JSON Lines, para revisar interacciones, pasos y uso de tools.
 
-Estos archivos ayudan a evaluar el comportamiento durante las pruebas manuales y a diagnosticar errores de configuracion, datos faltantes o fallas de ejecucion.
+Si hay PostgreSQL configurado, las conversaciones, mensajes y trazas tambien se guardan en base de datos y pueden consultarse desde la vista `Trazas` o desde los endpoints:
+
+- `GET /api/conversations`
+- `POST /api/conversations`
+- `GET /api/conversations/{conversation_id}`
+- `DELETE /api/conversations/{conversation_id}`
+- `GET /api/traces`
+- `GET /api/traces/{conversation_id}`
+
+`POST /api/clear` limpia la memoria persistida de la conversacion activa cuando recibe `conversation_id`.
+
+Estos registros ayudan a evaluar el comportamiento durante las pruebas manuales y a diagnosticar errores de configuracion, datos faltantes o fallas de ejecucion.
+
+Las trazas incluyen metadata de auditoria: `conversation_id`, `trace_id`, modelo LLM, `prompt_version`, hash del prompt, latencias de LLM/tools, estado final de cada paso y, cuando se consulta documentacion, metadata de chunks RAG recuperados.
+
+## Evidencia de entrega
+
+Para recolectar evidencia reproducible de la entrega final con la app web corriendo:
+
+```bash
+python scripts/collect_evidence.py --base-url http://localhost:8000
+```
+
+El script guarda salidas de Docker, estado de migraciones y respuestas de endpoints en `docs/evidencia_entrega3/<fecha>/`.
 
 ## Casos de prueba
 
@@ -162,7 +236,10 @@ python -m tests
 ```
 
 Se usa LLM-as-a-judge. el modelo esta definido en benchmarks.py.
-Se debe cambiar el modelo para obtener resultados no sesgados.
+Se debe cambiar el modelo para obtener resultados no sesgados. Tambien se puede configurar un segundo juez:
 
+```bash
+SECOND_JUDGE_LLM_MODEL=otro/modelo python -m tests
+```
 
-
+Cada corrida guarda un reporte JSON en `tests/reports/` con metricas por caso, promedios y porcentaje de aprobacion. El reporte incluye modelo del agente, juez principal, segundo juez opcional, `prompt_version` y hash del prompt para comparar corridas.

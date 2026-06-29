@@ -1,0 +1,11 @@
+{
+  "command": [
+    ".venv/bin/python",
+    "-m",
+    "db",
+    "status"
+  ],
+  "returncode": 0,
+  "stdout": "Estado de migraciones:\n- 001_initial_schema.sql: aplicada\n",
+  "stderr": ""
+}

@@ -67,3 +67,26 @@ Torre de enfriamiento industrial destinada a la disipación de calor en procesos
 | Aumento de vibración | Desbalanceo de aspas, desgaste de rodamientos, aflojamiento de fundaciones |
 | Caída de presión | Fuga en circuito, válvula atascada, bomba con problemas |
 | Aumento de consumo sin cambio de carga | Fouling en condensador, falla en variador, daño en aspas |
+
+## Operación Recomendada
+
+- Mantener el caudal de circulación dentro del rango operativo y revisar que no existan variaciones bruscas de presión.
+- Verificar diariamente nivel de agua, estado visual del ventilador, ruido anómalo y presencia de fugas.
+- Operar con filtros limpios y eliminadores de gotas sin obstrucciones para evitar pérdida de eficiencia.
+- Registrar cualquier aumento sostenido de temperatura, vibración o consumo aunque el valor siga dentro del rango operativo.
+
+## Verificación de Fallas
+
+| Síntoma observado | Verificación inicial | Acción sugerida |
+|-------------------|----------------------|-----------------|
+| Temperatura alta | Revisar caudal, nivel de agua, limpieza de relleno y obstrucción de filtros | Limpiar filtros/relleno y confirmar recuperación de temperatura |
+| Vibración alta | Inspeccionar ventilador, rodamientos, base y fijaciones | Detener si supera límite crítico y corregir balanceo o fijación |
+| Presión baja | Buscar fugas, válvulas parcialmente cerradas o bomba con bajo rendimiento | Aislar fuga, normalizar válvulas y revisar bomba |
+| Eficiencia baja | Revisar fouling, eliminadores de gotas y chemigotas | Programar limpieza profunda y recalibrar sensores |
+
+## Criterios de Parada o Escalamiento
+
+- Detener la máquina si la vibración supera 4.5 mm/s o si se detectan ruidos mecánicos severos.
+- Escalar a mantenimiento si la temperatura supera 55 °C de forma sostenida.
+- Escalar si el caudal cae por debajo de 110 L/min y no se recupera con limpieza básica.
+- No reiniciar después de una parada por vibración sin inspección de ventilador, rodamientos y fundaciones.
