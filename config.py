@@ -21,7 +21,7 @@ def _resolve_path(value: str) -> Path:
 
 def _resolve_system_prompt() -> tuple[Path, str]:
     explicit_path = os.getenv("SYSTEM_PROMPT_PATH", "").strip()
-    requested_version = os.getenv("SYSTEM_PROMPT_VERSION", os.getenv("PROMPT_VERSION", "0.0.1")).strip() or "0.0.1"
+    requested_version = os.getenv("SYSTEM_PROMPT_VERSION", os.getenv("PROMPT_VERSION", "0.0.2")).strip() or "0.0.2"
     if explicit_path:
         path = _resolve_path(explicit_path)
         if path.exists():

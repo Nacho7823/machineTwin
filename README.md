@@ -42,7 +42,7 @@ LLM_TIMEOUT=120
 LLM_MAX_RETRIES=0
 LLM_ENABLE_THINKING=true
 LLM_REASONING_BUDGET=16384
-SYSTEM_PROMPT_VERSION=0.0.1
+SYSTEM_PROMPT_VERSION=0.0.2
 SYSTEM_PROMPT_PATH=
 WEB_HOST=0.0.0.0
 WEB_PORT=8000
@@ -261,41 +261,68 @@ Usar esos casos con el simulador corriendo y, segun corresponda, con la aplicaci
 
 
 ## Tests
-En la carpeta tests hay un benchmark, este usa los datos de las carpetas en tests/files/*  
+En la carpeta `tests` hay un benchmark automatizado que usa los datos de `tests/files/*`. La suite actual tiene 19 casos.
 
-para correr los tests:
-```bash
-python -m tests
-```
+Los comandos siguientes sirven con cualquier modelo configurado en `.env`; el modelo se puede cambiar con `LLM_MODEL`, `LLM_TEMPERATURE`, `LLM_TOP_P`, `LLM_MAX_TOKENS` y el resto de variables del proveedor. Para comparar resultados de la entrega final, se recomienda ejecutar con `SYSTEM_PROMPT_VERSION=0.0.2`.
 
-La corrida por defecto mantiene compatibilidad con `JUDGE_MODE=selected`: ejecuta los 20 casos, aplica checks deterministas a todos y solo usa LLM-as-a-judge en los casos/metricas declarados con `judge_metrics` dentro de cada `tests/files/*/test.json`.
-
-Para controlar mejor costo y duracion, se recomienda usar `TEST_PROFILE`:
-
-- `functional`: ejecuta los 20 casos con checks deterministas, sin LLM-as-a-judge.
-- `semantic`: ejecuta los 20 casos y usa juez solo en casos representativos con metricas utiles por caso. Es el perfil recomendado para comparar modelos y versiones de prompt.
-- `rag_full`: ejecuta solo casos RAG/documentacion y calcula las cuatro metricas.
-- `exhaustive`: ejecuta los 20 casos con las cuatro metricas. Es costoso y queda como corrida experimental.
-
-Ejemplo recomendado:
+Preparacion opcional para guardar logs de consola:
 
 ```bash
-TEST_PROFILE=semantic python -m tests
+mkdir -p logs/test-runs
+set -o pipefail
 ```
 
-Para correr sin LLM-as-a-judge usando el modo legacy:
+Corrida funcional, sin LLM-as-a-judge. Ejecuta los 19 casos y valida checks deterministas:
 
 ```bash
-JUDGE_MODE=off python -m tests
+SYSTEM_PROMPT_VERSION=0.0.2 \
+TEST_PROFILE=functional \
+.venv/bin/python -m tests
 ```
 
-Para correr una evaluacion exhaustiva con las cuatro metricas en todos los casos:
+Corrida semantica recomendada. Ejecuta los 19 casos, pero solo usa juez en casos representativos y con metricas utiles por caso:
 
 ```bash
-TEST_PROFILE=exhaustive python -m tests
+SYSTEM_PROMPT_VERSION=0.0.2 \
+TEST_PROFILE=semantic \
+JUDGE_METRIC_TIMEOUT_SECONDS=0 \
+.venv/bin/python -m tests
 ```
 
-La evaluacion exhaustiva puede consumir muchas llamadas al modelo y agotar limites gratuitos. `TEST_PROFILE`, cuando esta definido, tiene prioridad sobre `JUDGE_MODE`. El modelo juez usa la misma configuracion que el agente por defecto. Tambien se puede configurar un segundo juez:
+Corrida RAG completa. Ejecuta solo casos de documentacion/RAG y calcula las cuatro metricas:
+
+```bash
+SYSTEM_PROMPT_VERSION=0.0.2 \
+TEST_PROFILE=rag_full \
+JUDGE_METRIC_TIMEOUT_SECONDS=0 \
+.venv/bin/python -m tests
+```
+
+Corrida exhaustiva. Ejecuta los 19 casos con las cuatro metricas; es costosa y queda como corrida experimental:
+
+```bash
+SYSTEM_PROMPT_VERSION=0.0.2 \
+TEST_PROFILE=exhaustive \
+JUDGE_METRIC_TIMEOUT_SECONDS=0 \
+.venv/bin/python -m tests
+```
+
+Ejemplo para ejecutar la corrida semantica con un modelo especifico sin editar `.env`:
+
+```bash
+SYSTEM_PROMPT_VERSION=0.0.2 \
+TEST_PROFILE=semantic \
+JUDGE_METRIC_TIMEOUT_SECONDS=0 \
+LLM_MODEL=meta/llama-3.3-70b-instruct \
+LLM_TEMPERATURE=0.2 \
+LLM_TOP_P=0.7 \
+LLM_MAX_TOKENS=1024 \
+LLM_ENABLE_THINKING=false \
+LLM_REASONING_BUDGET=0 \
+.venv/bin/python -m tests
+```
+
+`TEST_PROFILE`, cuando esta definido, tiene prioridad sobre `JUDGE_MODE`. El modelo juez usa la misma configuracion que el agente por defecto. Tambien se puede configurar un segundo juez:
 
 ```bash
 SECOND_JUDGE_LLM_MODEL=otro/modelo python -m tests

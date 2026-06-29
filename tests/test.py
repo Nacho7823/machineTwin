@@ -11,14 +11,13 @@ from .utils import load_folder, parse_trace
 ALL_METRICS = ["faithfulness", "answer_relevance", "context_precision", "context_recall"]
 
 PROFILE_DESCRIPTIONS = {
-    "functional": "20 casos con checks deterministas y sin LLM-as-judge.",
-    "semantic": "20 casos con judge solo en casos representativos y metricas utiles por caso.",
+    "functional": "19 casos con checks deterministas y sin LLM-as-judge.",
+    "semantic": "19 casos con judge solo en casos representativos y metricas utiles por caso.",
     "rag_full": "Solo casos RAG/documentacion con las cuatro metricas.",
-    "exhaustive": "20 casos con las cuatro metricas en todos los casos.",
+    "exhaustive": "19 casos con las cuatro metricas en todos los casos.",
 }
 
 SEMANTIC_PROFILE_METRICS = {
-    "alert_details": ["faithfulness", "answer_relevance"],
     "current_status": ["faithfulness", "answer_relevance"],
     "documented_operation": ["faithfulness", "answer_relevance", "context_precision", "context_recall"],
     "high_vibration_advice": ["faithfulness", "answer_relevance", "context_precision", "context_recall"],

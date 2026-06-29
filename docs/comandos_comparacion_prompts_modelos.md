@@ -4,27 +4,26 @@ Este documento deja preparados los comandos para comparar dos modelos contra dos
 
 La estrategia recomendada usa `TEST_PROFILE=semantic`:
 
-- Ejecuta los 20 casos automatizados.
+- Ejecuta los 19 casos automatizados.
 - Mantiene checks deterministas en todos los casos: respuesta no vacia, errores de agente y tools esperadas.
 - Usa LLM-as-a-judge solo en casos representativos.
 - Usa solo las metricas que aportan valor por tipo de caso.
 
-Esto permite comparar resultados entre modelos y prompts con mucho menos consumo que `TEST_PROFILE=exhaustive`, que calcula las cuatro metricas en los 20 casos.
+Esto permite comparar resultados entre modelos y prompts con mucho menos consumo que `TEST_PROFILE=exhaustive`, que calcula las cuatro metricas en los 19 casos.
 
 ## Perfiles disponibles
 
-- `TEST_PROFILE=functional`: 20 casos sin LLM-as-a-judge. Sirve como smoke test rapido de tools, flujo y respuestas no vacias.
-- `TEST_PROFILE=semantic`: 20 casos con juez selectivo. Es el perfil recomendado para la comparacion principal.
+- `TEST_PROFILE=functional`: 19 casos sin LLM-as-a-judge. Sirve como smoke test rapido de tools, flujo y respuestas no vacias.
+- `TEST_PROFILE=semantic`: 19 casos con juez selectivo. Es el perfil recomendado para la comparacion principal.
 - `TEST_PROFILE=rag_full`: solo casos RAG/documentacion con las cuatro metricas.
-- `TEST_PROFILE=exhaustive`: 20 casos con las cuatro metricas. Es una corrida pesada y experimental.
+- `TEST_PROFILE=exhaustive`: 19 casos con las cuatro metricas. Es una corrida pesada y experimental.
 
 Cuando `TEST_PROFILE` esta definido, tiene prioridad sobre `JUDGE_MODE`. El reporte JSON guarda `test_profile`, `agent_model`, `judge_model`, `System Prompt version` y `prompt_hash`.
 
 ## Casos juzgados en semantic
 
-En `TEST_PROFILE=semantic`, los 20 casos se ejecutan, pero solo estos usan juez:
+En `TEST_PROFILE=semantic`, los 19 casos se ejecutan, pero solo estos usan juez:
 
-- `alert_details`: `faithfulness`, `answer_relevance`
 - `current_status`: `faithfulness`, `answer_relevance`
 - `documented_operation`: `faithfulness`, `answer_relevance`, `context_precision`, `context_recall`
 - `high_vibration_advice`: `faithfulness`, `answer_relevance`, `context_precision`, `context_recall`
@@ -137,7 +136,7 @@ time env \
 
 ## Corridas complementarias opcionales
 
-Para revisar rapidamente que los 20 casos siguen funcionando sin gastar juez:
+Para revisar rapidamente que los 19 casos siguen funcionando sin gastar juez:
 
 ```bash
 TEST_PROFILE=functional .venv/bin/python -m tests
