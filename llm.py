@@ -101,14 +101,15 @@ class LLMAgent:
     def __init__(self, tools: dict):
         self._agent = None
         self._tools = tools
-        api_key = LLM_API_KEY if LLM_API_KEY else "a"
+        if not LLM_API_KEY or not LLM_MODEL or not LLM_BASE_URL:
+            return
         extra_body = {}
         if LLM_ENABLE_THINKING:
             extra_body["chat_template_kwargs"] = {"enable_thinking": True}
             extra_body["reasoning_budget"] = LLM_REASONING_BUDGET
         self._agent = ChatOpenAI(
             model=LLM_MODEL,
-            openai_api_key=api_key,
+            openai_api_key=LLM_API_KEY,
             openai_api_base=LLM_BASE_URL,
             temperature=LLM_TEMPERATURE,
             top_p=LLM_TOP_P,

@@ -10,6 +10,28 @@ LOGS_DIR = BASE_DIR / "logs"
 DOCS_DIR = BASE_DIR / "docs-machines"
 PROMPTS_DIR = BASE_DIR / "config" / "prompts"
 LEGACY_SYSTEM_PROMPT_PATH = BASE_DIR / "config" / "systemprompt.md"
+DEFAULT_SYSTEM_PROMPT_VERSION = "0.0.2"
+
+
+def _env(name: str, default: str = "") -> str:
+    return os.getenv(name, default).strip()
+
+
+def _env_float(name: str, default: float) -> float:
+    value = _env(name)
+    return float(value) if value else default
+
+
+def _env_int(name: str, default: int) -> int:
+    value = _env(name)
+    return int(value) if value else default
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    value = _env(name)
+    if not value:
+        return default
+    return value.lower() in {"1", "true", "yes", "on"}
 
 
 def _resolve_path(value: str) -> Path:
@@ -20,8 +42,8 @@ def _resolve_path(value: str) -> Path:
 
 
 def _resolve_system_prompt() -> tuple[Path, str]:
-    explicit_path = os.getenv("SYSTEM_PROMPT_PATH", "").strip()
-    requested_version = os.getenv("SYSTEM_PROMPT_VERSION", os.getenv("PROMPT_VERSION", "0.0.2")).strip() or "0.0.2"
+    explicit_path = _env("SYSTEM_PROMPT_PATH")
+    requested_version = _env("SYSTEM_PROMPT_VERSION", DEFAULT_SYSTEM_PROMPT_VERSION) or DEFAULT_SYSTEM_PROMPT_VERSION
     if explicit_path:
         path = _resolve_path(explicit_path)
         if path.exists():
@@ -43,18 +65,16 @@ LOGS_DIR.mkdir(exist_ok=True)
 DOCS_DIR.mkdir(exist_ok=True)
 
 
-LLM_API_KEY = os.getenv("LLM_API_KEY", "")
-LLM_MODEL = os.getenv("LLM_MODEL", "nvidia/nemotron-3-super-120b-a12b")
-LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
-LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "1"))
-LLM_TOP_P = float(os.getenv("LLM_TOP_P", "0.95"))
-LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "16384"))
-LLM_TIMEOUT = float(os.getenv("LLM_TIMEOUT", "120"))
-LLM_MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "0"))
-LLM_ENABLE_THINKING = os.getenv("LLM_ENABLE_THINKING", "true").strip().lower() in {"1", "true", "yes", "on"}
-LLM_REASONING_BUDGET = int(os.getenv("LLM_REASONING_BUDGET", "16384"))
-DATABASE_URL = os.getenv("DATABASE_URL", "")
-WEB_HOST = os.getenv("WEB_HOST", "0.0.0.0")
-WEB_PORT = int(os.getenv("WEB_PORT", "8000"))
-
-MACHINE_NAME = os.getenv("MACHINE_NAME", "Torre de Enfriamiento Industrial T-100")
+LLM_API_KEY = _env("LLM_API_KEY")
+LLM_MODEL = _env("LLM_MODEL")
+LLM_BASE_URL = _env("LLM_BASE_URL")
+LLM_TEMPERATURE = _env_float("LLM_TEMPERATURE", 0.2)
+LLM_TOP_P = _env_float("LLM_TOP_P", 1.0)
+LLM_MAX_TOKENS = _env_int("LLM_MAX_TOKENS", 4096)
+LLM_TIMEOUT = _env_float("LLM_TIMEOUT", 120)
+LLM_MAX_RETRIES = _env_int("LLM_MAX_RETRIES", 0)
+LLM_ENABLE_THINKING = _env_bool("LLM_ENABLE_THINKING", False)
+LLM_REASONING_BUDGET = _env_int("LLM_REASONING_BUDGET", 0)
+DATABASE_URL = _env("DATABASE_URL")
+WEB_HOST = _env("WEB_HOST", "0.0.0.0")
+WEB_PORT = _env_int("WEB_PORT", 8000)

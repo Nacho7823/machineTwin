@@ -2,7 +2,7 @@ from pathlib import Path
 from log import get_logger, set_trace_recorder
 from llm import LLMAgent
 from langchain_core.messages import HumanMessage, SystemMessage
-from config import SYSTEM_PROMPT_PATH, DATA_DIR, DOCS_DIR, DATABASE_URL
+from config import SYSTEM_PROMPT_PATH, DATA_DIR, DOCS_DIR, DATABASE_URL, LLM_API_KEY, LLM_MODEL, LLM_BASE_URL
 from persistence import create_persistence
 
 import tools
@@ -33,8 +33,14 @@ class MachineTwin:
         return self._histories[key]
 
     def process(self, query: str, conversation_id: str | None = None) -> str:
+        if not LLM_MODEL:
+            return "Error: No se configuro el modelo LLM (LLM_MODEL). Revisa .env o .env.example."
+        if not LLM_BASE_URL:
+            return "Error: No se configuro la URL base del proveedor LLM (LLM_BASE_URL). Revisa .env o .env.example."
+        if not LLM_API_KEY:
+            return "Error: No se configuro la API key (LLM_API_KEY). Revisa .env o .env.example."
         if not self._agent.ready:
-            return "Error: No se configuro la API key (LLM_API_KEY)."
+            return "Error: No se pudo inicializar el agente LLM. Revisa la configuracion en .env."
 
         logger.info(f"Procesando consulta del usuario: '{query}'")
         history = self._get_history(conversation_id)
