@@ -29,11 +29,11 @@ Copiar el archivo de ejemplo:
 cp .env.example .env
 ```
 
-La aplicacion usa LangChain con un proveedor compatible con OpenAI. La configuracion por defecto usa Kilo AI:
+La aplicacion usa LangChain con un proveedor compatible con OpenAI. La configuracion actual usa NVIDIA NIM:
 
 ```env
-LLM_BASE_URL=https://api.kilo.ai/api/gateway/
-LLM_MODEL=stepfun/step-3.7-flash:free
+LLM_BASE_URL=https://integrate.api.nvidia.com/v1
+LLM_MODEL=meta/llama-3.1-8b-instruct
 LLM_API_KEY=
 SYSTEM_PROMPT_VERSION=0.0.1
 SYSTEM_PROMPT_PATH=
@@ -41,7 +41,7 @@ WEB_HOST=0.0.0.0
 WEB_PORT=8000
 ```
 
-En esta configuracion `LLM_API_KEY` puede quedar vacio.
+En esta configuracion `LLM_API_KEY` debe contener una API key valida de NVIDIA. La configuracion anterior de Kilo AI puede conservarse comentada en `.env` para volver atras rapidamente.
 
 Para cambiar a otro proveedor compatible con OpenAI, editar `.env` y ajustar:
 
@@ -66,8 +66,8 @@ Para persistir memoria conversacional y trazas en PostgreSQL, configurar:
 POSTGRES_DB=machinetwin
 POSTGRES_USER=machinetwin
 POSTGRES_PASSWORD=machinetwin
-POSTGRES_PORT=5432
-DATABASE_URL=postgresql://machinetwin:machinetwin@localhost:5432/machinetwin
+POSTGRES_PORT=5433
+DATABASE_URL=postgresql://machinetwin:machinetwin@localhost:5433/machinetwin
 ```
 
 Si `DATABASE_URL` no esta definido, la aplicacion usa memoria en proceso para desarrollo local.
