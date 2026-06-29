@@ -8,18 +8,38 @@ from . import agent_test, benchmarks
 from .utils import load_folder, parse_trace
 
 
+ALL_METRICS = ["faithfulness", "answer_relevance", "context_precision", "context_recall"]
+
+PROFILE_DESCRIPTIONS = {
+    "functional": "20 casos con checks deterministas y sin LLM-as-judge.",
+    "semantic": "20 casos con judge solo en casos representativos y metricas utiles por caso.",
+    "rag_full": "Solo casos RAG/documentacion con las cuatro metricas.",
+    "exhaustive": "20 casos con las cuatro metricas en todos los casos.",
+}
+
+SEMANTIC_PROFILE_METRICS = {
+    "alert_details": ["faithfulness", "answer_relevance"],
+    "current_status": ["faithfulness", "answer_relevance"],
+    "documented_operation": ["faithfulness", "answer_relevance", "context_precision"],
+    "maintenance_recommendation": ["faithfulness", "answer_relevance", "context_precision"],
+    "operational_problem_summary": ["answer_relevance"],
+    "out_of_limits": ["faithfulness", "answer_relevance"],
+    "rag_source_request": ["faithfulness", "answer_relevance", "context_precision"],
+    "recent_events": ["faithfulness", "answer_relevance"],
+}
+
+RAG_FULL_CASES = {
+    "documented_operation",
+    "maintenance_recommendation",
+    "rag_source_request",
+    "stop_criteria",
+    "verify_failure_actions",
+}
+
+
 def _average(scores):
     values = [score for score in scores if score is not None]
     return sum(values) / len(values) if values else None
-
-
-def _measure_all(trace, expected_output, model):
-    return {
-        "faithfulness": benchmarks.benchmark_fairthfulness(trace, model=model),
-        "answer_relevance": benchmarks.benchmark_answer_relevance(trace, model=model),
-        "context_precision": benchmarks.benchmark_context_precision(trace, expected_output, model=model),
-        "context_recall": benchmarks.benchmark_context_recall(trace, expected_output, model=model),
-    }
 
 
 def _measure_selected(trace, expected_output, model, metric_names):
@@ -38,12 +58,46 @@ def _measure_selected(trace, expected_output, model, metric_names):
     return scores
 
 
-def _case_judge_metrics(configs):
+def _active_profile():
+    return benchmarks.TEST_PROFILE or ""
+
+
+def _legacy_judge_metrics(configs):
     if benchmarks.JUDGE_MODE == "off":
         return []
     if benchmarks.JUDGE_MODE == "all":
-        return ["faithfulness", "answer_relevance", "context_precision", "context_recall"]
+        return ALL_METRICS
     return configs.get("judge_metrics", [])
+
+
+def _case_judge_metrics(folder_name, configs):
+    profile = _active_profile()
+    if not profile:
+        return _legacy_judge_metrics(configs)
+    if profile == "functional":
+        return []
+    if profile == "semantic":
+        return SEMANTIC_PROFILE_METRICS.get(folder_name, [])
+    if profile == "rag_full":
+        return ALL_METRICS if folder_name in RAG_FULL_CASES else []
+    if profile == "exhaustive":
+        return ALL_METRICS
+    valid = ", ".join(PROFILE_DESCRIPTIONS)
+    raise ValueError(f"TEST_PROFILE invalido: {profile}. Valores validos: {valid}")
+
+
+def _select_test_folders(test_folders):
+    profile = _active_profile()
+    if profile == "rag_full":
+        return [folder for folder in test_folders if folder.name in RAG_FULL_CASES]
+    return test_folders
+
+
+def _profile_label():
+    profile = _active_profile()
+    if profile:
+        return profile
+    return f"legacy:{benchmarks.JUDGE_MODE}"
 
 
 def _tools_ok(trace, expected_tools):
@@ -80,6 +134,7 @@ def _build_report(status, results, case_reports, total_cases):
         "agent_model": config.LLM_MODEL,
         "judge_model": benchmarks.JUDGE_LLM_MODEL,
         "judge_mode": benchmarks.JUDGE_MODE,
+        "test_profile": _profile_label(),
         "second_judge_model": benchmarks.SECOND_JUDGE_LLM_MODEL or None,
         "judge_metric_timeout_seconds": benchmarks.JUDGE_METRIC_TIMEOUT_SECONDS,
         "System Prompt version": config.SYSTEM_PROMPT_VERSION,
@@ -106,8 +161,12 @@ def test():
     work_dir = Path(__file__).parent / "test_folder"
     
     files_dir = Path(__file__).parent / "files"
-    test_folders = sorted([p for p in files_dir.iterdir() if p.is_dir()])
+    all_test_folders = sorted([p for p in files_dir.iterdir() if p.is_dir()])
+    test_folders = _select_test_folders(all_test_folders)
 
+    print(f"Perfil de test: {_profile_label()}")
+    if _active_profile():
+        print(f"Descripcion: {PROFILE_DESCRIPTIONS.get(_active_profile(), 'Perfil no reconocido')}")
     print(f"Se encontraron {len(test_folders)} casos de prueba para ejecutar.\n")
     reports_dir = Path(__file__).parent / "reports"
     reports_dir.mkdir(exist_ok=True)
@@ -150,7 +209,7 @@ def test():
         print("-" * 40)
 
         expected_output = configs.get("expected_output", "")
-        judge_metrics = _case_judge_metrics(configs)
+        judge_metrics = _case_judge_metrics(folder_name, configs)
         metric_scores = _measure_selected(trace, expected_output, benchmarks.JUDGE_LLM_MODEL, judge_metrics)
         second_scores = None
         if benchmarks.SECOND_JUDGE_LLM_MODEL and judge_metrics:

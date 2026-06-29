@@ -268,9 +268,22 @@ para correr los tests:
 python -m tests
 ```
 
-La corrida por defecto usa `JUDGE_MODE=selected`: ejecuta los 20 casos, aplica checks deterministas a todos y solo usa LLM-as-a-judge en los casos/metricas declarados con `judge_metrics` dentro de cada `tests/files/*/test.json`. Esto reduce el consumo de cuota del modelo sin perder cobertura funcional critica.
+La corrida por defecto mantiene compatibilidad con `JUDGE_MODE=selected`: ejecuta los 20 casos, aplica checks deterministas a todos y solo usa LLM-as-a-judge en los casos/metricas declarados con `judge_metrics` dentro de cada `tests/files/*/test.json`.
 
-Para correr sin LLM-as-a-judge:
+Para controlar mejor costo y duracion, se recomienda usar `TEST_PROFILE`:
+
+- `functional`: ejecuta los 20 casos con checks deterministas, sin LLM-as-a-judge.
+- `semantic`: ejecuta los 20 casos y usa juez solo en casos representativos con metricas utiles por caso. Es el perfil recomendado para comparar modelos y versiones de prompt.
+- `rag_full`: ejecuta solo casos RAG/documentacion y calcula las cuatro metricas.
+- `exhaustive`: ejecuta los 20 casos con las cuatro metricas. Es costoso y queda como corrida experimental.
+
+Ejemplo recomendado:
+
+```bash
+TEST_PROFILE=semantic python -m tests
+```
+
+Para correr sin LLM-as-a-judge usando el modo legacy:
 
 ```bash
 JUDGE_MODE=off python -m tests
@@ -279,13 +292,13 @@ JUDGE_MODE=off python -m tests
 Para correr una evaluacion exhaustiva con las cuatro metricas en todos los casos:
 
 ```bash
-JUDGE_MODE=all python -m tests
+TEST_PROFILE=exhaustive python -m tests
 ```
 
-La evaluacion exhaustiva puede consumir muchas llamadas al modelo y agotar limites gratuitos. El modelo juez esta definido en `tests/benchmarks.py`. Se debe cambiar el modelo para obtener resultados no sesgados. Tambien se puede configurar un segundo juez:
+La evaluacion exhaustiva puede consumir muchas llamadas al modelo y agotar limites gratuitos. `TEST_PROFILE`, cuando esta definido, tiene prioridad sobre `JUDGE_MODE`. El modelo juez usa la misma configuracion que el agente por defecto. Tambien se puede configurar un segundo juez:
 
 ```bash
 SECOND_JUDGE_LLM_MODEL=otro/modelo python -m tests
 ```
 
-Cada corrida guarda un reporte JSON en `tests/reports/` con metricas por caso, promedios y porcentaje de aprobacion. El reporte incluye modelo del agente, juez principal, segundo juez opcional, `System Prompt version` y hash del prompt para comparar corridas.
+Cada corrida guarda un reporte JSON en `tests/reports/` con metricas por caso, promedios y porcentaje de aprobacion. El reporte incluye modelo del agente, juez principal, segundo juez opcional, `test_profile`, `System Prompt version` y hash del prompt para comparar corridas.
