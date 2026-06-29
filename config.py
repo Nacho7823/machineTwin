@@ -44,8 +44,15 @@ DOCS_DIR.mkdir(exist_ok=True)
 
 
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
-LLM_MODEL = os.getenv("LLM_MODEL", "meta/llama-3.1-8b-instruct")
+LLM_MODEL = os.getenv("LLM_MODEL", "nvidia/nemotron-3-ultra-550b-a55b")
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
+LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "1"))
+LLM_TOP_P = float(os.getenv("LLM_TOP_P", "0.95"))
+LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "16384"))
+LLM_TIMEOUT = float(os.getenv("LLM_TIMEOUT", "120"))
+LLM_MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "0"))
+LLM_ENABLE_THINKING = os.getenv("LLM_ENABLE_THINKING", "true").strip().lower() in {"1", "true", "yes", "on"}
+LLM_REASONING_BUDGET = int(os.getenv("LLM_REASONING_BUDGET", "16384"))
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 WEB_HOST = os.getenv("WEB_HOST", "0.0.0.0")
 WEB_PORT = int(os.getenv("WEB_PORT", "8000"))

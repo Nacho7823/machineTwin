@@ -3,7 +3,19 @@ from hashlib import sha256
 from time import perf_counter
 
 from log import get_logger, log_trace_event, trace_context
-from config import LLM_API_KEY, LLM_MODEL, LLM_BASE_URL, SYSTEM_PROMPT_VERSION
+from config import (
+    LLM_API_KEY,
+    LLM_MODEL,
+    LLM_BASE_URL,
+    LLM_TEMPERATURE,
+    LLM_TOP_P,
+    LLM_MAX_TOKENS,
+    LLM_TIMEOUT,
+    LLM_MAX_RETRIES,
+    LLM_ENABLE_THINKING,
+    LLM_REASONING_BUDGET,
+    SYSTEM_PROMPT_VERSION,
+)
 
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
@@ -90,11 +102,20 @@ class LLMAgent:
         self._agent = None
         self._tools = tools
         api_key = LLM_API_KEY if LLM_API_KEY else "a"
+        extra_body = {}
+        if LLM_ENABLE_THINKING:
+            extra_body["chat_template_kwargs"] = {"enable_thinking": True}
+            extra_body["reasoning_budget"] = LLM_REASONING_BUDGET
         self._agent = ChatOpenAI(
             model=LLM_MODEL,
             openai_api_key=api_key,
             openai_api_base=LLM_BASE_URL,
-            temperature=0.3,
+            temperature=LLM_TEMPERATURE,
+            top_p=LLM_TOP_P,
+            max_tokens=LLM_MAX_TOKENS,
+            timeout=LLM_TIMEOUT,
+            max_retries=LLM_MAX_RETRIES,
+            extra_body=extra_body or None,
         ).bind_tools(list(self._tools.values()))
 
     @property

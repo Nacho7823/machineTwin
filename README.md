@@ -33,8 +33,15 @@ La aplicacion usa LangChain con un proveedor compatible con OpenAI. La configura
 
 ```env
 LLM_BASE_URL=https://integrate.api.nvidia.com/v1
-LLM_MODEL=meta/llama-3.1-8b-instruct
+LLM_MODEL=nvidia/nemotron-3-ultra-550b-a55b
 LLM_API_KEY=
+LLM_TEMPERATURE=1
+LLM_TOP_P=0.95
+LLM_MAX_TOKENS=16384
+LLM_TIMEOUT=120
+LLM_MAX_RETRIES=0
+LLM_ENABLE_THINKING=true
+LLM_REASONING_BUDGET=16384
 SYSTEM_PROMPT_VERSION=0.0.1
 SYSTEM_PROMPT_PATH=
 WEB_HOST=0.0.0.0
@@ -48,6 +55,9 @@ Para cambiar a otro proveedor compatible con OpenAI, editar `.env` y ajustar:
 - `LLM_BASE_URL`: URL base del proveedor.
 - `LLM_MODEL`: modelo a utilizar.
 - `LLM_API_KEY`: API key del proveedor, si corresponde.
+- `LLM_TEMPERATURE`, `LLM_TOP_P`, `LLM_MAX_TOKENS`: parametros de generacion.
+- `LLM_TIMEOUT`, `LLM_MAX_RETRIES`: control de espera y reintentos del cliente.
+- `LLM_ENABLE_THINKING`, `LLM_REASONING_BUDGET`: parametros especificos para modelos NVIDIA con razonamiento.
 - `SYSTEM_PROMPT_VERSION`: version funcional del system prompt usada en trazas y reportes.
 - `SYSTEM_PROMPT_PATH`: ruta explicita opcional del system prompt. Si se define, tiene prioridad sobre `SYSTEM_PROMPT_VERSION`.
 - `WEB_HOST` y `WEB_PORT`: host y puerto del backend web.
