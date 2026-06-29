@@ -11,8 +11,9 @@
 - Agente: `nvidia/nemotron-3-super-120b-a12b`
 - Juez principal: `nvidia/nemotron-3-super-120b-a12b`
 - Segundo juez: `meta/llama-3.3-70b-instruct`
+- Uso previsto: evidencia final de evaluacion para la entrega.
 
-Se detecto tambien un reporte parcial para `System Prompt version = 0.0.2` (`tests/reports/benchmark_20260629_194931.json`), pero solo contiene 4/19 casos completados. Por eso no se usa para esta evaluacion final; este documento analiza la corrida completa disponible.
+No se ejecuta una comparacion adicional con `System Prompt version = 0.0.2` por falta de tiempo. Queda documentada como opcion futura si se desea comparar distintas versiones de system prompt.
 
 ## Metodologia de lectura
 
@@ -79,6 +80,8 @@ Las metricas no se aplican a los 19 casos, sino solo a los casos seleccionados p
 | Promedio combinado por observacion de metrica | 0.8253 |
 
 Promedios por metrica:
+
+En esta tabla, `n` indica cuantas observaciones validas entraron en el promedio de esa celda. No representa los 19 casos totales del benchmark, sino solo los casos donde esa metrica tuvo puntaje disponible para ese juez o para la lectura combinada. Por ejemplo, `faithfulness` del juez principal tiene `n=3` porque solo tres observaciones de esa metrica tuvieron puntaje del juez principal; el promedio combinado tiene `n=6` porque hubo seis observaciones combinables para esa metrica.
 
 | Metrica | Juez principal | Segundo juez | Promedio combinado |
 |---|---:|---:|---:|
@@ -155,5 +158,5 @@ Hay variabilidad entre jueces. Nemotron tiende a ser mas favorable en algunos ca
 - Mejorar la obediencia del agente al checklist de tools obligatorias, especialmente en preguntas de seguimiento, fuentes documentales y variables inexistentes.
 - Revisar trazas de casos donde la respuesta es buena pero falla `expected_tools_used`; puede haber un problema real de ruteo o una expectativa demasiado estricta del test.
 - Mejorar `context_precision` en casos documentales, revisando recuperacion y ranking de chunks.
-- Repetir la corrida con `System Prompt version = 0.0.2` para comparar contra esta base `0.0.1`.
+- Mantener como opcion futura la comparacion entre distintas versiones de system prompt, incluida `0.0.2`, aunque esta entrega usa como evidencia final la corrida `0.0.1`.
 - Si se vuelve a ejecutar `verify_failure_actions`, conviene mantener el mismo perfil y jueces para confirmar si el timeout fue aislado.
