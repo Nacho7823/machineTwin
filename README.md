@@ -220,16 +220,6 @@ Estos registros ayudan a evaluar el comportamiento durante las pruebas manuales 
 
 Las trazas incluyen metadata de auditoria: `conversation_id`, `trace_id`, modelo LLM, `System Prompt version`, hash del prompt, latencias de LLM/tools, estado final de cada paso y, cuando se consulta documentacion, metadata de chunks RAG recuperados.
 
-## Evidencia de entrega
-
-Para recolectar evidencia reproducible de la entrega final con la app web corriendo:
-
-```bash
-python scripts/collect_evidence.py --base-url http://localhost:8000
-```
-
-El script guarda salidas de Docker, estado de migraciones y respuestas de endpoints en `docs/evidencia_entrega3/<fecha>/`.
-
 ## Casos de prueba
 
 La guia de evaluacion manual esta en:
