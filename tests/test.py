@@ -30,12 +30,50 @@ def _tools_ok(trace, expected_tools):
     return all(tool in used for tool in expected_tools)
 
 
+def _agent_response_ok(answer: str) -> bool:
+    error_markers = [
+        "Error al consultar el LLM",
+        "Rate limit exceeded",
+        "Free model usage limit reached",
+    ]
+    return bool(str(answer).strip()) and not any(marker in str(answer) for marker in error_markers)
+
+
 def _prompt_hash() -> str | None:
     try:
         content = config.SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")
     except Exception:
         return None
     return sha256(content.encode("utf-8")).hexdigest()[:12]
+
+
+def _build_report(status, results, case_reports, total_cases):
+    approved_count = sum(1 for case in case_reports if case["approved"])
+    approval_rate = approved_count / len(case_reports) if case_reports else 0.0
+    return {
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "status": status,
+        "agent_model": config.LLM_MODEL,
+        "judge_model": benchmarks.JUDGE_LLM_MODEL,
+        "second_judge_model": benchmarks.SECOND_JUDGE_LLM_MODEL or None,
+        "judge_metric_timeout_seconds": benchmarks.JUDGE_METRIC_TIMEOUT_SECONDS,
+        "System Prompt version": config.SYSTEM_PROMPT_VERSION,
+        "prompt_hash": _prompt_hash(),
+        "total_cases": total_cases,
+        "completed_cases": len(case_reports),
+        "averages": {
+            metric: (sum(scores) / len(scores) if scores else None)
+            for metric, scores in results.items()
+        },
+        "approval_rate": approval_rate,
+        "cases": case_reports,
+    }
+
+
+def _write_report(report_path, status, results, case_reports, total_cases):
+    report = _build_report(status, results, case_reports, total_cases)
+    report_path.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+    return report
 
 
 def test():
@@ -46,6 +84,9 @@ def test():
     test_folders = sorted([p for p in files_dir.iterdir() if p.is_dir()])
 
     print(f"Se encontraron {len(test_folders)} casos de prueba para ejecutar.\n")
+    reports_dir = Path(__file__).parent / "reports"
+    reports_dir.mkdir(exist_ok=True)
+    report_path = reports_dir / f"benchmark_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
 
     results = {
         "faithfulness": [],
@@ -96,8 +137,10 @@ def test():
         metric_average = _average(metric_scores.values())
         tools_passed = _tools_ok(trace, configs.get("expected_tools", []))
         non_empty_answer = bool(str(chat).strip())
+        agent_response_ok = _agent_response_ok(chat)
         deterministic_checks = {
             "answer_non_empty": non_empty_answer,
+            "agent_response_ok": agent_response_ok,
             "expected_tools_used": tools_passed,
         }
         deterministic_passed = all(deterministic_checks.values())
@@ -135,6 +178,7 @@ def test():
             "deterministic_checks": deterministic_checks,
             "approved": approved,
         })
+        _write_report(report_path, "partial", results, case_reports, len(test_folders))
 
     print("=" * 60)
     print("RESUMEN CONSOLIDADO DE PROMEDIOS DE BENCHMARKS")
@@ -148,24 +192,7 @@ def test():
     print(f"  - Porcentaje de aprobacion: {approval_rate:.2%} ({approved_count}/{len(case_reports)})")
     print("=" * 60 + "\n")
 
-    report = {
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "agent_model": config.LLM_MODEL,
-        "judge_model": benchmarks.JUDGE_LLM_MODEL,
-        "second_judge_model": benchmarks.SECOND_JUDGE_LLM_MODEL or None,
-        "System Prompt version": config.SYSTEM_PROMPT_VERSION,
-        "prompt_hash": _prompt_hash(),
-        "averages": {
-            metric: (sum(scores) / len(scores) if scores else None)
-            for metric, scores in results.items()
-        },
-        "approval_rate": approval_rate,
-        "cases": case_reports,
-    }
-    reports_dir = Path(__file__).parent / "reports"
-    reports_dir.mkdir(exist_ok=True)
-    report_path = reports_dir / f"benchmark_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
-    report_path.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+    _write_report(report_path, "complete", results, case_reports, len(test_folders))
     print(f"Reporte guardado en: {report_path}")
 
 
