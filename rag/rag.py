@@ -39,6 +39,7 @@ class DocumentRAG:
                 'titulo': doc['titulo'],
                 'doc_id': doc['id'],
                 'chunk_index': i,
+                'source_path': doc.get('source_path', doc['titulo']),
             }
             for i in range(len(chunks))
         ]
@@ -135,5 +136,4 @@ if __name__ == "__main__":
         resultados = rag_system.query(pregunta, k=2)
         for r in resultados:
             print(f'[{r["metadata"]["titulo"]}]: {r["document"]} (dist: {r["distance"]:.4f})')
-
 

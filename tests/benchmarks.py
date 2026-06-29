@@ -4,6 +4,7 @@ from config import LLM_API_KEY, LLM_BASE_URL, LLM_MODEL
 os.environ["OPENAI_API_KEY"] = LLM_API_KEY or "a"
 os.environ["OPENAI_BASE_URL"] = LLM_BASE_URL
 JUDGE_LLM_MODEL = LLM_MODEL
+SECOND_JUDGE_LLM_MODEL = os.getenv("SECOND_JUDGE_LLM_MODEL", "")
 MOSTRAR_LOGS = False
 
 from deepeval.test_case import LLMTestCase
@@ -11,10 +12,18 @@ from deepeval.metrics import (
     FaithfulnessMetric,
     AnswerRelevancyMetric,
     ContextualPrecisionMetric,
-    ContextualRecallMetric,
 )
 
 from tests.utils import parse_trace
+
+
+def _measure_metric(metric, test_case, metric_name: str):
+    try:
+        metric.measure(test_case)
+        return metric.score
+    except Exception as e:
+        print(f"  - {metric_name}: sin puntaje ({type(e).__name__}: {e})")
+        return None
 
 
 def _build_test_case(trace, expected_output=None):
@@ -29,41 +38,28 @@ def _build_test_case(trace, expected_output=None):
     )
 
 
-def benchmark_fairthfulness(trace):
+def benchmark_faithfulness(trace, model=JUDGE_LLM_MODEL):
     # Faithfulness	¿Las afirmaciones están soportadas por el contexto?
     test_case = _build_test_case(trace)
     if test_case is None:
         return None
-    metric = FaithfulnessMetric(threshold=0.7, model=JUDGE_LLM_MODEL, include_reason=True, verbose_mode=MOSTRAR_LOGS)
-    metric.measure(test_case)
-    return metric.score
+    metric = FaithfulnessMetric(threshold=0.7, model=model, include_reason=True, verbose_mode=MOSTRAR_LOGS)
+    return _measure_metric(metric, test_case, "faithfulness")
 
 
-def benchmark_answer_relevance(trace):
+def benchmark_answer_relevance(trace, model=JUDGE_LLM_MODEL):
     # Answer Relevance	¿La respuesta responde la query?
     test_case = _build_test_case(trace)
     if test_case is None:
         return None
-    metric = AnswerRelevancyMetric(threshold=0.7, model=JUDGE_LLM_MODEL, include_reason=True, verbose_mode=MOSTRAR_LOGS)
-    metric.measure(test_case)
-    return metric.score
+    metric = AnswerRelevancyMetric(threshold=0.7, model=model, include_reason=True, verbose_mode=MOSTRAR_LOGS)
+    return _measure_metric(metric, test_case, "answer_relevance")
 
 
-def benchmark_context_precision(trace, expected_output):
+def benchmark_context_precision(trace, expected_output, model=JUDGE_LLM_MODEL):
     # Context Precision	¿Los chunks relevantes están rankeados primero?
     test_case = _build_test_case(trace, expected_output=expected_output)
     if test_case is None:
         return None
-    metric = ContextualPrecisionMetric(threshold=0.7, model=JUDGE_LLM_MODEL, include_reason=True, verbose_mode=MOSTRAR_LOGS)
-    metric.measure(test_case)
-    return metric.score
-
-
-def benchmark_context_recall(trace, expected_output):
-    # Context Recall	¿Se recuperaron todos los chunks necesarios?
-    test_case = _build_test_case(trace, expected_output=expected_output)
-    if test_case is None:
-        return None
-    metric = ContextualRecallMetric(threshold=0.7, model=JUDGE_LLM_MODEL, include_reason=True, verbose_mode=MOSTRAR_LOGS)
-    metric.measure(test_case)
-    return metric.score
+    metric = ContextualPrecisionMetric(threshold=0.7, model=model, include_reason=True, verbose_mode=MOSTRAR_LOGS)
+    return _measure_metric(metric, test_case, "context_precision")

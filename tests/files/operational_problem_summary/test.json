@@ -1,0 +1,14 @@
+{
+  "purpose": "Caso 16: verificar sintesis de problema operativo combinando limites y eventos.",
+  "source_case": "current_status",
+  "archives": [
+    "docs-machines/compressor_C300.md",
+    "docs-machines/cooling_tower_T100.md",
+    "docs-machines/electric_motor_M200.md"
+  ],
+  "user_query": "Hay algun problema operativo?",
+  "include_configured_machines": true,
+  "expected_tools": ["detectar_fuera_de_limites", "consultar_eventos_recientes"],
+  "judge_metrics": ["answer_relevance"],
+  "expected_output": "El agente revisa limites actuales y eventos recientes; si los valores actuales estan normales pero hay alertas registradas, lo informa sin dejar la respuesta vacia."
+}

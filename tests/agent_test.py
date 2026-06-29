@@ -43,6 +43,17 @@ class TestMachineTwin:
 
     def sim_archives(self, sim_archives):
         self.sim_archives = sim_archives
+
+        if "__machines__" in sim_archives:
+            for machine_dir_name, archives in sim_archives["__machines__"].items():
+                for file_name, content in archives.items():
+                    dest_path = self.data_dir / machine_dir_name / file_name
+                    dest_path.parent.mkdir(parents=True, exist_ok=True)
+                    if isinstance(content, dict):
+                        dest_path.write_text(json.dumps(content))
+                    else:
+                        dest_path.write_text(content)
+            return
         
         # Determine machine directory name from machine_current.json
         machine_current = sim_archives.get("machine_current.json", {})
@@ -90,7 +101,6 @@ class TestMachineTwin:
         return chat, trace
 
     
-
 
 
 

@@ -1,0 +1,3 @@
+event_id,timestamp,event_type,description,severity,resolved,technician
+EVT-101,2026-06-27 06:00:00,maintenance,Inspección visual diaria completada,info,True,Simulador
+EVT-102,2026-06-27 07:00:00,maintenance,Limpieza del filtro de aire realizada,info,True,Simulador

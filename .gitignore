@@ -1,12 +1,15 @@
-# Python
+# Python caches and build artifacts
 __pycache__/
 *.py[cod]
 *$py.class
+*.egg-info/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .coverage
 htmlcov/
+build/
+dist/
 
 # Virtual environments
 .venv/
@@ -19,10 +22,13 @@ ENV/
 .env.*
 !.env.example
 
-# Generated runtime data
+# Generated runtime data and logs
 data/
 logs/
 *.log
+.deepeval/
+chroma_data/
+tests/test_folder/
 
 # Node / Vite frontend
 node_modules/
@@ -34,58 +40,22 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# External class material kept locally
+ia-utn-frsf/
+
+# Agent/local tooling
+.agents/
+.opencode/
+skills-lock.json
+
 # OS / editor files
 .DS_Store
 Thumbs.db
+.vscode/
 .idea/
-.vscode/*
-!.vscode/extensions.json
 *.swp
 *.swo
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
-
-
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-dist/
-build/
-venv/
-.venv/
-
-# Env
-.env
-
-# Node
-node_modules/
-dist/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-
-# OS
-.DS_Store
-Thumbs.db
-
-# ChromaDB
-chroma_data/
-
-# Logs
-*.log
-.agents
-.opencode
-data
-ia-utn-frsf
-skills-lock.json
-
-
-tests/test_folder/
-
-logs
-.deepeval/

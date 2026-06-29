@@ -1,0 +1,16 @@
+{
+  "purpose": "Caso 6: verificar continuidad conversacional en una misma conversacion.",
+  "archives": [
+    "docs-machines/compressor_C300.md",
+    "docs-machines/cooling_tower_T100.md",
+    "docs-machines/electric_motor_M200.md"
+  ],
+  "user_queries": [
+    "Dame el estado actual de las maquinas.",
+    "Y la temperatura sigue siendo normal?"
+  ],
+  "include_configured_machines": true,
+  "expected_tools": ["obtener_estado_actual", "detectar_fuera_de_limites"],
+  "judge_metrics": ["answer_relevance"],
+  "expected_output": "El agente revisa datos actuales y limites, y responde si la temperatura esta dentro de rango por maquina."
+}

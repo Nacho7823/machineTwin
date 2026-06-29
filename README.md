@@ -29,21 +29,99 @@ Copiar el archivo de ejemplo:
 cp .env.example .env
 ```
 
-La aplicacion usa LangChain con un proveedor compatible con OpenAI. La configuracion por defecto usa Kilo AI:
+La aplicacion usa LangChain con un proveedor compatible con OpenAI. La configuracion actual usa NVIDIA NIM:
 
 ```env
-LLM_BASE_URL=https://api.kilo.ai/api/gateway/
-LLM_MODEL=stepfun/step-3.7-flash:free
+LLM_BASE_URL=https://integrate.api.nvidia.com/v1
+LLM_MODEL=nvidia/nemotron-3-super-120b-a12b
 LLM_API_KEY=
+LLM_TEMPERATURE=1
+LLM_TOP_P=0.95
+LLM_MAX_TOKENS=16384
+LLM_TIMEOUT=120
+LLM_MAX_RETRIES=0
+LLM_ENABLE_THINKING=true
+LLM_REASONING_BUDGET=16384
+SYSTEM_PROMPT_VERSION=0.0.2
+SYSTEM_PROMPT_PATH=
+WEB_HOST=0.0.0.0
+WEB_PORT=8000
 ```
 
-En esta configuracion `LLM_API_KEY` puede quedar vacio.
+En esta configuracion `LLM_API_KEY` debe contener una API key valida de NVIDIA. La configuracion anterior de Kilo AI puede conservarse comentada en `.env` para volver atras rapidamente.
+
+Modelo alternativo probado para comparaciones mas livianas:
+
+```env
+LLM_MODEL=meta/llama-3.3-70b-instruct
+LLM_TEMPERATURE=0.2
+LLM_TOP_P=0.7
+LLM_MAX_TOKENS=1024
+LLM_TIMEOUT=120
+LLM_MAX_RETRIES=0
+LLM_ENABLE_THINKING=false
+LLM_REASONING_BUDGET=0
+```
 
 Para cambiar a otro proveedor compatible con OpenAI, editar `.env` y ajustar:
 
 - `LLM_BASE_URL`: URL base del proveedor.
 - `LLM_MODEL`: modelo a utilizar.
 - `LLM_API_KEY`: API key del proveedor, si corresponde.
+- `LLM_TEMPERATURE`, `LLM_TOP_P`, `LLM_MAX_TOKENS`: parametros de generacion.
+- `LLM_TIMEOUT`, `LLM_MAX_RETRIES`: control de espera y reintentos del cliente.
+- `LLM_ENABLE_THINKING`, `LLM_REASONING_BUDGET`: parametros especificos para modelos NVIDIA con razonamiento.
+- `SYSTEM_PROMPT_VERSION`: version funcional del system prompt usada en trazas y reportes.
+- `SYSTEM_PROMPT_PATH`: ruta explicita opcional del system prompt. Si se define, tiene prioridad sobre `SYSTEM_PROMPT_VERSION`.
+- `WEB_HOST` y `WEB_PORT`: host y puerto del backend web.
+
+El prompt activo se resuelve en este orden:
+
+1. Si `SYSTEM_PROMPT_PATH` esta definido, se usa ese archivo.
+2. Si no, se busca `config/prompts/systemprompt-{SYSTEM_PROMPT_VERSION}.md`.
+
+Las copias historicas versionadas se guardan en `config/prompts/`, por ejemplo `config/prompts/systemprompt-0.0.1.md`. Para crear una nueva version, agregar un archivo como `config/prompts/systemprompt-0.0.2.md` y configurar `SYSTEM_PROMPT_VERSION=0.0.2`.
+
+Para persistir memoria conversacional y trazas en PostgreSQL, configurar:
+
+```env
+POSTGRES_DB=machinetwin
+POSTGRES_USER=machinetwin
+POSTGRES_PASSWORD=machinetwin
+POSTGRES_PORT=5433
+DATABASE_URL=postgresql://machinetwin:machinetwin@localhost:5433/machinetwin
+```
+
+Si `DATABASE_URL` no esta definido, la aplicacion usa memoria en proceso para desarrollo local.
+
+## Base de datos PostgreSQL
+
+La entrega final usa PostgreSQL como persistencia principal para conversaciones, mensajes y trazas. Para levantar una base local portable con Docker:
+
+```bash
+docker compose up -d postgres
+```
+
+Con `.env` configurado, aplicar las migraciones antes de iniciar la app:
+
+```bash
+python -m db migrate
+```
+
+Para revisar el estado de migraciones:
+
+```bash
+python -m db status
+```
+
+Para borrar las tablas de desarrollo y volver a migrar desde cero:
+
+```bash
+python -m db reset --yes
+python -m db migrate
+```
+
+La aplicacion no crea el esquema automaticamente al iniciar: si falta una tabla, muestra un error indicando que se debe ejecutar `python -m db migrate`. Esto evita que el esquema de entrega dependa de efectos laterales ocultos.
 
 ## Ejecucion del simulador
 
@@ -79,6 +157,11 @@ La app web queda disponible en:
 ```text
 http://localhost:8000
 ```
+
+La interfaz incluye dos vistas:
+
+- `Chat`: conversacion principal con el agente.
+- `Trazas`: inspeccion de conversaciones persistidas, mensajes, eventos y tools ejecutadas.
 
 ## Uso en terminal
 
@@ -122,14 +205,37 @@ El agente expone estas tools publicas:
 
 La aplicacion registra informacion de ejecucion en `logs/app.log`. Las trazas del agente se guardan en `logs/traces.jsonl`, en formato JSON Lines, para revisar interacciones, pasos y uso de tools.
 
-Estos archivos ayudan a evaluar el comportamiento durante las pruebas manuales y a diagnosticar errores de configuracion, datos faltantes o fallas de ejecucion.
+Si hay PostgreSQL configurado, las conversaciones, mensajes y trazas tambien se guardan en base de datos y pueden consultarse desde la vista `Trazas` o desde los endpoints:
+
+- `GET /api/conversations`
+- `POST /api/conversations`
+- `GET /api/conversations/{conversation_id}`
+- `DELETE /api/conversations/{conversation_id}`
+- `GET /api/traces`
+- `GET /api/traces/{conversation_id}`
+
+`POST /api/clear` limpia la memoria persistida de la conversacion activa cuando recibe `conversation_id`.
+
+Estos registros ayudan a evaluar el comportamiento durante las pruebas manuales y a diagnosticar errores de configuracion, datos faltantes o fallas de ejecucion.
+
+Las trazas incluyen metadata de auditoria: `conversation_id`, `trace_id`, modelo LLM, `System Prompt version`, hash del prompt, latencias de LLM/tools, estado final de cada paso y, cuando se consulta documentacion, metadata de chunks RAG recuperados.
+
+## Evidencia de entrega
+
+Para recolectar evidencia reproducible de la entrega final con la app web corriendo:
+
+```bash
+python scripts/collect_evidence.py --base-url http://localhost:8000
+```
+
+El script guarda salidas de Docker, estado de migraciones y respuestas de endpoints en `docs/evidencia_entrega3/<fecha>/`.
 
 ## Casos de prueba
 
 La guia de evaluacion manual esta en:
 
 ```text
-docs/casos_prueba.md
+docs/tests/casos_prueba.md
 ```
 
 Usar esos casos con el simulador corriendo y, segun corresponda, con la aplicacion web o la interfaz de terminal.
@@ -148,21 +254,65 @@ Usar esos casos con el simulador corriendo y, segun corresponda, con la aplicaci
 - `simulator/`: simulador de maquinas y configuraciones.
 - `rag/`: implementacion del RAG.
 - `docs-machines/`: documentacion tecnica de maquinas usada por el RAG.
-- `docs/casos_prueba.md`: casos de prueba manuales para la Entrega 2.
+- `docs/tests/casos_prueba.md`: casos de prueba manuales para la Entrega 2.
 - `data/`: archivos generados por el simulador.
 - `logs/`: logs y trazas generadas por la aplicacion.
 
 
 ## Tests
-En la carpeta tests hay un benchmark, este usa los datos de las carpetas en tests/files/*  
+En la carpeta `tests` hay un benchmark automatizado que usa los datos de `tests/files/*`. La suite actual tiene 19 casos.
 
-para correr los tests:
+Los comandos siguientes sirven con cualquier modelo configurado en `.env`; el modelo se puede cambiar con `LLM_MODEL`, `LLM_TEMPERATURE`, `LLM_TOP_P`, `LLM_MAX_TOKENS` y el resto de variables del proveedor. Para comparar resultados de la entrega final, se recomienda ejecutar con `SYSTEM_PROMPT_VERSION=0.0.2`.
+
+Preparacion opcional para guardar logs de consola:
+
 ```bash
-python -m tests
+mkdir -p logs/test-runs
+set -o pipefail
 ```
 
-Se usa LLM-as-a-judge. el modelo esta definido en benchmarks.py.
-Se debe cambiar el modelo para obtener resultados no sesgados.
+Corrida funcional, sin LLM-as-a-judge. Ejecuta los 19 casos y valida checks deterministas:
 
+```bash
+SYSTEM_PROMPT_VERSION=0.0.2 \
+TEST_PROFILE=functional \
+.venv/bin/python -m tests
+```
 
+Corrida semantica + RAG recomendada. Ejecuta los 19 casos, pero solo usa juez en casos representativos y con metricas utiles por caso, incluyendo los casos documentales necesarios:
 
+```bash
+SYSTEM_PROMPT_VERSION=0.0.2 \
+TEST_PROFILE=semantic_rag \
+.venv/bin/python -m tests
+```
+
+Corrida exhaustiva. Ejecuta los 19 casos con las tres metricas; es costosa y queda como corrida experimental:
+
+```bash
+SYSTEM_PROMPT_VERSION=0.0.2 \
+TEST_PROFILE=exhaustive \
+.venv/bin/python -m tests
+```
+
+Ejemplo para ejecutar la corrida semantica con un modelo especifico sin editar `.env`:
+
+```bash
+SYSTEM_PROMPT_VERSION=0.0.2 \
+TEST_PROFILE=semantic_rag \
+LLM_MODEL=meta/llama-3.3-70b-instruct \
+LLM_TEMPERATURE=0.2 \
+LLM_TOP_P=0.7 \
+LLM_MAX_TOKENS=1024 \
+LLM_ENABLE_THINKING=false \
+LLM_REASONING_BUDGET=0 \
+.venv/bin/python -m tests
+```
+
+`TEST_PROFILE` define el tipo de corrida. El modelo juez usa la misma configuracion que el agente por defecto. Tambien se puede configurar un segundo juez:
+
+```bash
+SECOND_JUDGE_LLM_MODEL=otro/modelo python -m tests
+```
+
+Cada corrida guarda un reporte JSON en `tests/reports/` con metricas por caso, promedios y porcentaje de aprobacion. El reporte incluye modelo del agente, juez principal, segundo juez opcional, `test_profile`, `System Prompt version` y hash del prompt para comparar corridas.

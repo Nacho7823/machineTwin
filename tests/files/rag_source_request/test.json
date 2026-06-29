@@ -1,0 +1,13 @@
+{
+  "purpose": "Caso 20: verificar que cuando el usuario pide fuente, el agente cita documentacion visible de forma contextual.",
+  "source_case": "current_status",
+  "archives": [
+    "docs-machines/compressor_C300.md",
+    "docs-machines/cooling_tower_T100.md",
+    "docs-machines/electric_motor_M200.md"
+  ],
+  "user_query": "De que documentacion sacas las recomendaciones de mantenimiento?",
+  "include_configured_machines": true,
+  "expected_tools": ["consultar_documentacion"],
+  "expected_output": "El agente consulta documentacion tecnica y menciona fuentes visibles o documentos usados, sin requerir citas por linea."
+}

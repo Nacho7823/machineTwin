@@ -68,3 +68,26 @@ Compresor de tornillo rotativo para suministro continuo de aire comprimido en pr
 | Caída de presión | Fuga en circuito, válvula de descarga atascada, desgaste de rotores |
 | Caída de caudal | Filtro de aire obstruido, fuga en sistema, deterioro de rotores |
 | Aumento de consumo sin cambio de carga | Aceite contaminado, filtro de aceite obstruido, falla en regulación |
+
+## Operación Recomendada
+
+- Verificar nivel, color y temperatura del aceite antes de operar bajo carga continua.
+- Mantener presión y caudal dentro de rangos operativos, evitando ciclos cortos de arranque/parada.
+- Drenar el separador según rutina y revisar fugas de aire comprimido en línea.
+- Registrar aumentos sostenidos de temperatura, vibración o consumo para detectar degradación temprana.
+
+## Verificación de Fallas
+
+| Síntoma observado | Verificación inicial | Acción sugerida |
+|-------------------|----------------------|-----------------|
+| Temperatura de descarga alta | Revisar aceite, intercooler, ventilación y carga de trabajo | Limpiar intercooler, reemplazar aceite/filtros si corresponde |
+| Vibración alta | Inspeccionar rodamientos, rotores, acoplamiento y base | Reducir carga y programar inspección mecánica |
+| Presión baja | Buscar fugas, válvula de descarga atascada o desgaste de rotores | Aislar fugas y revisar regulación |
+| Caudal bajo | Revisar filtro de aire, fugas y estado de rotores | Cambiar filtro y verificar estanqueidad del circuito |
+
+## Criterios de Parada o Escalamiento
+
+- Detener si la temperatura de descarga supera 105 °C.
+- Detener o reducir carga si la vibración supera 5.0 mm/s.
+- Escalar si la presión cae por debajo de 6.0 bar junto con pérdida de caudal.
+- No continuar operación si se detecta aceite degradado, olor a quemado o ruido de rotores.

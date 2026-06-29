@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { MessageList } from './components/MessageList'
 import { MessageInput } from './components/MessageInput'
 import { Sidebar } from './components/Sidebar'
-import type { Message, Conversation, CompletionResponse, QuickAction } from './types'
+import { TraceView } from './components/TraceView'
+import type { Message, Conversation, CompletionResponse, QuickAction, AppView, PersistedConversation, ConversationTrace } from './types'
 import './App.css'
 
 const STORAGE_KEY = 'machinetwin_conversations'
@@ -86,6 +87,23 @@ function saveConversations(conversations: Conversation[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations))
 }
 
+function persistedToConversation(conversation: PersistedConversation): Conversation {
+  return {
+    id: conversation.conversation_id,
+    title: conversation.title || conversation.conversation_id,
+    messages: [],
+    createdAt: Date.parse(conversation.created_at) || Date.now(),
+    updatedAt: Date.parse(conversation.updated_at) || Date.now(),
+  }
+}
+
+function persistedMessagesToChat(detail: ConversationTrace): Message[] {
+  return detail.messages.map(message => ({
+    role: message.role === 'assistant' ? 'bot' : 'user',
+    text: message.content,
+  }))
+}
+
 function getInitialDarkMode(): boolean {
   const saved = localStorage.getItem('darkMode')
   if (saved !== null) return saved === 'true'
@@ -99,6 +117,7 @@ export default function App() {
   const [darkMode, setDarkMode] = useState(getInitialDarkMode)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [view, setView] = useState<AppView>('chat')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const activeConversation = conversations.find(c => c.id === activeId)
@@ -119,6 +138,30 @@ export default function App() {
     saveConversations(conversations)
   }, [conversations])
 
+  useEffect(() => {
+    fetch('/api/conversations')
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then((data: { conversations?: PersistedConversation[] }) => {
+        const persisted = data.conversations || []
+        if (persisted.length === 0) return
+        setConversations(prev => {
+          const byId = new Map(prev.map(conversation => [conversation.id, conversation]))
+          const merged = persisted.map(conversation => {
+            const existing = byId.get(conversation.conversation_id)
+            return {
+              ...persistedToConversation(conversation),
+              messages: existing?.messages || [],
+            }
+          })
+          return merged
+        })
+        setActiveId(current => current || persisted[0]?.conversation_id || null)
+      })
+      .catch(() => {
+        // Si el backend no esta disponible, se usa localStorage como fallback.
+      })
+  }, [])
+
   const updateConversation = useCallback((id: string, msgs: Message[]) => {
     setConversations(prev => prev.map(c =>
       c.id === id
@@ -138,6 +181,13 @@ export default function App() {
     }
     setConversations(prev => [newConv, ...prev])
     setActiveId(id)
+    fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversation_id: id, title: newConv.title }),
+    }).catch(() => {
+      // El chat local puede seguir funcionando aunque la persistencia falle.
+    })
     return id
   }, [])
 
@@ -146,10 +196,23 @@ export default function App() {
     setMobileSidebarOpen(false)
   }
 
+  const loadPersistedConversation = useCallback(async (id: string) => {
+    const res = await fetch(`/api/conversations/${encodeURIComponent(id)}`)
+    if (!res.ok) throw new Error('No se pudo cargar la conversacion')
+    const detail: ConversationTrace = await res.json()
+    const persistedMessages = persistedMessagesToChat(detail)
+    if (persistedMessages.length > 0) {
+      updateConversation(id, persistedMessages)
+    }
+  }, [updateConversation])
+
   const handleSelectConversation = (id: string) => {
     const conv = conversations.find(c => c.id === id)
     if (conv) {
       setActiveId(id)
+      loadPersistedConversation(id).catch(() => {
+        // Se conserva la copia local si el backend no responde.
+      })
     }
     setMobileSidebarOpen(false)
   }
@@ -162,6 +225,9 @@ export default function App() {
       const nextId = remaining[0]?.id ?? null
       setActiveId(nextId)
     }
+    fetch(`/api/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => {
+      // Si falla el backend, al menos se elimina de la vista local.
+    })
   }
 
   const clearChat = useCallback(async () => {
@@ -232,6 +298,23 @@ export default function App() {
       const data: CompletionResponse = await res.json()
       const botMsg: Message = { role: 'bot', text: data.completion }
       updateConversation(currentId, [...withUser, botMsg])
+      fetch('/api/conversations')
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then((listData: { conversations?: PersistedConversation[] }) => {
+          const persisted = listData.conversations || []
+          if (persisted.length === 0) return
+          setConversations(prev => {
+            const byId = new Map(prev.map(conversation => [conversation.id, conversation]))
+            return persisted.map(conversation => {
+              const existing = byId.get(conversation.conversation_id)
+              return {
+                ...persistedToConversation(conversation),
+                messages: existing?.messages || [],
+              }
+            })
+          })
+        })
+        .catch(() => {})
     } catch {
       const errorMsg: Message = { role: 'bot', text: 'Error al conectar con el servidor.' }
       updateConversation(currentId, [...withUser, errorMsg])
@@ -268,6 +351,22 @@ export default function App() {
           </button>
           <h1>MachineTwin</h1>
           <div className="header-spacer" />
+          <div className="view-tabs" role="tablist" aria-label="Vistas">
+            <button
+              type="button"
+              className={view === 'chat' ? 'view-tab view-tab--active' : 'view-tab'}
+              onClick={() => setView('chat')}
+            >
+              Chat
+            </button>
+            <button
+              type="button"
+              className={view === 'traces' ? 'view-tab view-tab--active' : 'view-tab'}
+              onClick={() => setView('traces')}
+            >
+              Trazas
+            </button>
+          </div>
           <button
             className="theme-toggle"
             onClick={() => setDarkMode(!darkMode)}
@@ -293,15 +392,21 @@ export default function App() {
           </button>
         </header>
 
-        <MessageList
-          messages={messages}
-          thinking={thinking}
-          messagesEndRef={messagesEndRef}
-          quickActions={quickActions}
-          onQuickPrompt={sendMessage}
-        />
+        {view === 'chat' ? (
+          <>
+            <MessageList
+              messages={messages}
+              thinking={thinking}
+              messagesEndRef={messagesEndRef}
+              quickActions={quickActions}
+              onQuickPrompt={sendMessage}
+            />
 
-        <MessageInput onSend={sendMessage} onClear={clearChat} disabled={thinking} />
+            <MessageInput onSend={sendMessage} onClear={clearChat} disabled={thinking} />
+          </>
+        ) : (
+          <TraceView activeConversationId={activeId} />
+        )}
       </div>
     </div>
   )

@@ -67,3 +67,26 @@ Motor eléctrico trifásico de inducción para impulsión de bombas y compresore
 | Aumento de vibración | Desbalanceo de rotor, rodamientos desgastados, desalineación |
 | Aumento de corriente sin cambio de carga | Falso contacto, cortocircuito parcial en bobinado, carga mecánica atascada |
 | Caída de RPM | Deslizamiento elevado, falla en rotor en jaula, suministro eléctrico inestable |
+
+## Operación Recomendada
+
+- Operar dentro de corriente nominal y evitar sobrecargas sostenidas del equipo accionado.
+- Mantener ventilación libre de suciedad y obstrucciones para proteger el bobinado.
+- Revisar semanalmente terminales, ruido anómalo, temperatura superficial y corriente por fase.
+- Registrar cambios simultáneos de corriente, RPM, vibración y eficiencia para distinguir falla eléctrica de carga mecánica.
+
+## Verificación de Fallas
+
+| Síntoma observado | Verificación inicial | Acción sugerida |
+|-------------------|----------------------|-----------------|
+| Temperatura alta | Revisar ventilación, suciedad, carga mecánica y corriente por fase | Limpiar ventilación y reducir carga si la corriente está elevada |
+| Vibración alta | Inspeccionar alineación, rodamientos, base y balanceo de rotor | Parar si supera límite crítico y revisar rodamientos/alineación |
+| Corriente alta | Medir corriente por fase, revisar bornes y estado de carga acoplada | Corregir falso contacto o liberar carga mecánica |
+| RPM baja | Verificar tensión de alimentación, carga mecánica y deslizamiento | Escalar a mantenimiento eléctrico si persiste |
+
+## Criterios de Parada o Escalamiento
+
+- Detener si la temperatura de bobinado supera 100 °C.
+- Detener si la vibración supera 3.5 mm/s o aparece ruido mecánico severo.
+- Escalar si la corriente supera 38 A con temperatura creciente.
+- No reiniciar tras disparo térmico sin revisar ventilación, aislamiento y carga acoplada.
