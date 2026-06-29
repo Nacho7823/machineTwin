@@ -48,7 +48,7 @@ export interface TraceEvent {
   tool_status?: string
   tool_latency_ms?: number
   llm_model?: string
-  prompt_version?: string
+  'System Prompt version'?: string
   prompt_hash?: string
   latency_ms?: number
   finish_status?: string

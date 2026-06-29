@@ -138,7 +138,7 @@ export function TraceView({ activeConversationId }: TraceViewProps) {
                     {trace.latency_ms !== undefined && <span className="trace-chip">{trace.latency_ms} ms LLM</span>}
                     {trace.tool_latency_ms !== undefined && <span className="trace-chip">{trace.tool_latency_ms} ms tool</span>}
                   </div>
-                  {(trace.llm_model || trace.prompt_version || trace.prompt_hash) && (
+                  {(trace.llm_model || trace['System Prompt version'] || trace.prompt_hash) && (
                     <dl className="trace-metadata">
                       {trace.llm_model && (
                         <>
@@ -146,10 +146,10 @@ export function TraceView({ activeConversationId }: TraceViewProps) {
                           <dd>{trace.llm_model}</dd>
                         </>
                       )}
-                      {trace.prompt_version && (
+                      {trace['System Prompt version'] && (
                         <>
                           <dt>Prompt</dt>
-                          <dd>{trace.prompt_version}</dd>
+                          <dd>{trace['System Prompt version']}</dd>
                         </>
                       )}
                       {trace.prompt_hash && (

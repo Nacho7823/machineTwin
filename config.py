@@ -19,7 +19,7 @@ LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 LLM_MODEL = os.getenv("LLM_MODEL", "stepfun/step-3.7-flash:free")
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.kilo.ai/api/gateway/")
 DATABASE_URL = os.getenv("DATABASE_URL", "")
-PROMPT_VERSION = os.getenv("PROMPT_VERSION", "entrega3-v1")
+SYSTEM_PROMPT_VERSION = os.getenv("SYSTEM_PROMPT_VERSION", os.getenv("PROMPT_VERSION", "0.0.1"))
 WEB_HOST = os.getenv("WEB_HOST", "0.0.0.0")
 WEB_PORT = int(os.getenv("WEB_PORT", "8000"))
 

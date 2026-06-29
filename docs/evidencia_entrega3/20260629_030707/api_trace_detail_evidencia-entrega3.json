@@ -36,7 +36,7 @@
         "latency_ms": 812.4,
         "prompt_hash": "evidencia1234",
         "finish_status": "tool_calls",
-        "prompt_version": "entrega3-v1",
+        "System Prompt version": "0.0.1",
         "conversation_id": "evidencia-entrega3"
       },
       {

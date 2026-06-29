@@ -3,7 +3,7 @@ from hashlib import sha256
 from time import perf_counter
 
 from log import get_logger, log_trace_event, trace_context
-from config import LLM_API_KEY, LLM_MODEL, LLM_BASE_URL, PROMPT_VERSION
+from config import LLM_API_KEY, LLM_MODEL, LLM_BASE_URL, SYSTEM_PROMPT_VERSION
 
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
@@ -114,7 +114,7 @@ class LLMAgent:
             "event": "llm_response",
             "step": step,
             "llm_model": LLM_MODEL,
-            "prompt_version": PROMPT_VERSION,
+            "System Prompt version": SYSTEM_PROMPT_VERSION,
             "prompt_hash": _prompt_hash(messages),
             "latency_ms": latency_ms,
             "finish_status": finish_status,
@@ -131,7 +131,7 @@ class LLMAgent:
             "event": "llm_request",
             "step": step,
             "llm_model": LLM_MODEL,
-            "prompt_version": PROMPT_VERSION,
+            "System Prompt version": SYSTEM_PROMPT_VERSION,
             "prompt_hash": _prompt_hash(messages),
             "messages": _messages_to_dicts(messages),
         })
@@ -152,7 +152,7 @@ class LLMAgent:
                             "event": "empty_response_retry",
                             "step": step,
                             "llm_model": LLM_MODEL,
-                            "prompt_version": PROMPT_VERSION,
+                            "System Prompt version": SYSTEM_PROMPT_VERSION,
                             "prompt_hash": _prompt_hash(messages),
                             "finish_status": "empty_retry",
                         })
@@ -162,7 +162,7 @@ class LLMAgent:
                             "event": "llm_request",
                             "step": step,
                             "llm_model": LLM_MODEL,
-                            "prompt_version": PROMPT_VERSION,
+                            "System Prompt version": SYSTEM_PROMPT_VERSION,
                             "prompt_hash": _prompt_hash(messages),
                             "messages": _messages_to_dicts(messages),
                         })
@@ -176,7 +176,7 @@ class LLMAgent:
                         "event": "empty_response_fallback",
                         "step": step,
                         "llm_model": LLM_MODEL,
-                        "prompt_version": PROMPT_VERSION,
+                        "System Prompt version": SYSTEM_PROMPT_VERSION,
                         "prompt_hash": _prompt_hash(messages),
                         "finish_status": "fallback",
                         "response": _message_to_dict(fallback_response),
@@ -194,7 +194,7 @@ class LLMAgent:
                     "step": step,
                     "max_steps": MAX_REASONING_STEPS,
                     "llm_model": LLM_MODEL,
-                    "prompt_version": PROMPT_VERSION,
+                    "System Prompt version": SYSTEM_PROMPT_VERSION,
                     "prompt_hash": _prompt_hash(messages),
                     "finish_status": "reasoning_limit",
                     "response": _message_to_dict(limit_response),
@@ -243,7 +243,7 @@ class LLMAgent:
                 "event": "llm_request",
                 "step": step,
                 "llm_model": LLM_MODEL,
-                "prompt_version": PROMPT_VERSION,
+                "System Prompt version": SYSTEM_PROMPT_VERSION,
                 "prompt_hash": _prompt_hash(messages),
                 "messages": _messages_to_dicts(messages),
             })

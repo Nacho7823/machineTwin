@@ -106,9 +106,10 @@ Cerrar la entrega final con trazabilidad demostrable, memoria persistente por ch
   - Agregar casos donde falten datos o documentación suficiente.
   - Mantener expected tools y criterio de aprobación por caso.
 
-- [x] Versionar el system prompt y registrar `prompt_version`.
+- [x] Versionar el system prompt y registrar `System Prompt version`.
   - Definir una versión explícita para `config/systemprompt.md`.
-  - Registrar `prompt_version` en trazas y reportes de benchmarks.
+  - Registrar `System Prompt version` en trazas y reportes de benchmarks.
+  - Guardar copia historica en `config/prompts/systemprompt-0.0.1.md`.
   - Usar la versión para comparar corridas cuando cambien prompt, modelo, datos o tools.
   - Documentar cuándo se incrementa la versión del prompt.
 
@@ -117,7 +118,7 @@ Cerrar la entrega final con trazabilidad demostrable, memoria persistente por ch
   - Registrar duración de cada tool call.
   - Registrar modelo usado en cada respuesta.
   - Mantener `trace_id` y `conversation_id` como identificadores principales.
-  - Registrar `prompt_version`.
+  - Registrar `System Prompt version`.
   - Registrar errores y límite de pasos de razonamiento.
   - Mostrar estos campos en la vista `Trazas`.
 

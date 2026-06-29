@@ -153,7 +153,7 @@ def test():
         "agent_model": config.LLM_MODEL,
         "judge_model": benchmarks.JUDGE_LLM_MODEL,
         "second_judge_model": benchmarks.SECOND_JUDGE_LLM_MODEL or None,
-        "prompt_version": config.PROMPT_VERSION,
+        "System Prompt version": config.SYSTEM_PROMPT_VERSION,
         "prompt_hash": _prompt_hash(),
         "averages": {
             metric: (sum(scores) / len(scores) if scores else None)

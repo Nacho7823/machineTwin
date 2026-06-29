@@ -35,7 +35,7 @@ La aplicacion usa LangChain con un proveedor compatible con OpenAI. La configura
 LLM_BASE_URL=https://api.kilo.ai/api/gateway/
 LLM_MODEL=stepfun/step-3.7-flash:free
 LLM_API_KEY=
-PROMPT_VERSION=entrega3-v1
+SYSTEM_PROMPT_VERSION=0.0.1
 WEB_HOST=0.0.0.0
 WEB_PORT=8000
 ```
@@ -47,8 +47,10 @@ Para cambiar a otro proveedor compatible con OpenAI, editar `.env` y ajustar:
 - `LLM_BASE_URL`: URL base del proveedor.
 - `LLM_MODEL`: modelo a utilizar.
 - `LLM_API_KEY`: API key del proveedor, si corresponde.
-- `PROMPT_VERSION`: version funcional del system prompt usada en trazas y reportes.
+- `SYSTEM_PROMPT_VERSION`: version funcional del system prompt usada en trazas y reportes.
 - `WEB_HOST` y `WEB_PORT`: host y puerto del backend web.
+
+El prompt activo se mantiene en `config/systemprompt.md`. Las copias historicas versionadas se guardan en `config/prompts/`, por ejemplo `config/prompts/systemprompt-0.0.1.md`.
 
 Para persistir memoria conversacional y trazas en PostgreSQL, configurar:
 
@@ -186,7 +188,7 @@ Si hay PostgreSQL configurado, las conversaciones, mensajes y trazas tambien se 
 
 Estos registros ayudan a evaluar el comportamiento durante las pruebas manuales y a diagnosticar errores de configuracion, datos faltantes o fallas de ejecucion.
 
-Las trazas incluyen metadata de auditoria: `conversation_id`, `trace_id`, modelo LLM, `prompt_version`, hash del prompt, latencias de LLM/tools, estado final de cada paso y, cuando se consulta documentacion, metadata de chunks RAG recuperados.
+Las trazas incluyen metadata de auditoria: `conversation_id`, `trace_id`, modelo LLM, `System Prompt version`, hash del prompt, latencias de LLM/tools, estado final de cada paso y, cuando se consulta documentacion, metadata de chunks RAG recuperados.
 
 ## Evidencia de entrega
 
@@ -242,4 +244,4 @@ Se debe cambiar el modelo para obtener resultados no sesgados. Tambien se puede 
 SECOND_JUDGE_LLM_MODEL=otro/modelo python -m tests
 ```
 
-Cada corrida guarda un reporte JSON en `tests/reports/` con metricas por caso, promedios y porcentaje de aprobacion. El reporte incluye modelo del agente, juez principal, segundo juez opcional, `prompt_version` y hash del prompt para comparar corridas.
+Cada corrida guarda un reporte JSON en `tests/reports/` con metricas por caso, promedios y porcentaje de aprobacion. El reporte incluye modelo del agente, juez principal, segundo juez opcional, `System Prompt version` y hash del prompt para comparar corridas.
