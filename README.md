@@ -50,6 +50,19 @@ WEB_PORT=8000
 
 En esta configuracion `LLM_API_KEY` debe contener una API key valida de NVIDIA. La configuracion anterior de Kilo AI puede conservarse comentada en `.env` para volver atras rapidamente.
 
+Modelo alternativo probado para comparaciones mas livianas:
+
+```env
+LLM_MODEL=meta/llama-3.3-70b-instruct
+LLM_TEMPERATURE=0.2
+LLM_TOP_P=0.7
+LLM_MAX_TOKENS=1024
+LLM_TIMEOUT=120
+LLM_MAX_RETRIES=0
+LLM_ENABLE_THINKING=false
+LLM_REASONING_BUDGET=0
+```
+
 Para cambiar a otro proveedor compatible con OpenAI, editar `.env` y ajustar:
 
 - `LLM_BASE_URL`: URL base del proveedor.
