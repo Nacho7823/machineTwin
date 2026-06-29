@@ -1,0 +1,11 @@
+{
+  "purpose": "Caso 9: verificar detalle de alertas sin estado de resolucion.",
+  "archives": [
+    "docs-machines/compressor_C300.md",
+    "docs-machines/cooling_tower_T100.md",
+    "docs-machines/electric_motor_M200.md"
+  ],
+  "user_query": "Mostrame el detalle de las alertas registradas.",
+  "expected_tools": ["consultar_eventos_recientes"],
+  "expected_output": "El agente muestra fecha, maquina, tipo, severidad y descripcion de alertas, sin mostrar resolved ni sugerir que pueden marcarse como resueltas."
+}

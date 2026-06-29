@@ -1,0 +1,11 @@
+{
+  "purpose": "Caso 2: verificar tendencia de temperatura sobre los ultimos registros.",
+  "archives": [
+    "docs-machines/compressor_C300.md",
+    "docs-machines/cooling_tower_T100.md",
+    "docs-machines/electric_motor_M200.md"
+  ],
+  "user_query": "Analiza la tendencia de temperatura de los ultimos registros.",
+  "expected_tools": ["analizar_tendencia"],
+  "expected_output": "El agente resume por maquina cantidad de muestras, valor inicial, valor final, variacion y tendencia de temperatura."
+}

@@ -1,0 +1,12 @@
+{
+  "purpose": "Caso 15: verificar respuesta controlada cuando se pide tendencia de una variable inexistente.",
+  "source_case": "current_status",
+  "archives": [
+    "docs-machines/compressor_C300.md",
+    "docs-machines/cooling_tower_T100.md",
+    "docs-machines/electric_motor_M200.md"
+  ],
+  "user_query": "Analiza la tendencia de humedad relativa.",
+  "expected_tools": ["analizar_tendencia"],
+  "expected_output": "El agente indica que la variable solicitada no existe en los historiales revisados y lista variables disponibles sin inventar datos."
+}

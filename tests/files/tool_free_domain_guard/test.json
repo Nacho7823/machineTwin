@@ -1,0 +1,12 @@
+{
+  "purpose": "Caso 18: verificar rechazo de consulta claramente fuera de dominio sin usar tools.",
+  "source_case": "current_status",
+  "archives": [
+    "docs-machines/compressor_C300.md",
+    "docs-machines/cooling_tower_T100.md",
+    "docs-machines/electric_motor_M200.md"
+  ],
+  "user_query": "Recomendame una receta de cocina para la cena.",
+  "expected_tools": [],
+  "expected_output": "El agente indica que la consulta esta fuera del dominio de maquinas industriales o gemelos digitales."
+}

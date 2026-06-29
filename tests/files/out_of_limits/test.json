@@ -1,0 +1,11 @@
+{
+  "purpose": "Caso 3: verificar deteccion deterministica de variables fuera de rango.",
+  "archives": [
+    "docs-machines/compressor_C300.md",
+    "docs-machines/cooling_tower_T100.md",
+    "docs-machines/electric_motor_M200.md"
+  ],
+  "user_query": "Hay variables fuera de rango?",
+  "expected_tools": ["detectar_fuera_de_limites"],
+  "expected_output": "El agente identifica por maquina si las variables estan normales, fuera de rango optimo, fuera de rango operativo o sin datos, sin inventar rangos."
+}

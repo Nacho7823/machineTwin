@@ -1,0 +1,11 @@
+{
+  "purpose": "Caso 1: verificar que el agente informa estado actual de las maquinas disponibles.",
+  "archives": [
+    "docs-machines/compressor_C300.md",
+    "docs-machines/cooling_tower_T100.md",
+    "docs-machines/electric_motor_M200.md"
+  ],
+  "user_query": "Dame el estado actual de las maquinas.",
+  "expected_tools": ["obtener_estado_actual"],
+  "expected_output": "El agente informa las maquinas detectadas, estado operativo, variables actuales, valores y unidades."
+}

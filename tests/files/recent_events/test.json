@@ -1,0 +1,11 @@
+{
+  "purpose": "Caso 4: verificar eventos recientes sin exponer campos internos de resolucion.",
+  "archives": [
+    "docs-machines/compressor_C300.md",
+    "docs-machines/cooling_tower_T100.md",
+    "docs-machines/electric_motor_M200.md"
+  ],
+  "user_query": "Mostrame eventos recientes de las maquinas.",
+  "expected_tools": ["consultar_eventos_recientes"],
+  "expected_output": "El agente muestra eventos recientes con maquina, fecha, tipo, severidad y descripcion, sin mostrar resolved ni resuelto."
+}

@@ -1,0 +1,12 @@
+{
+  "purpose": "Caso 19: verificar acciones de verificacion ante posibles fallas usando documentacion.",
+  "source_case": "current_status",
+  "archives": [
+    "docs-machines/compressor_C300.md",
+    "docs-machines/cooling_tower_T100.md",
+    "docs-machines/electric_motor_M200.md"
+  ],
+  "user_query": "Que pasos de verificacion deberia seguir si sospecho una falla?",
+  "expected_tools": ["consultar_documentacion"],
+  "expected_output": "El agente enumera verificaciones tecnicas documentadas y evita diagnosticar una causa sin datos suficientes."
+}
