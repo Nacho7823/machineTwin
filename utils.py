@@ -67,6 +67,7 @@ def cargar_documentos(docs_dir: Path) -> list[dict]:
                 docs.append({
                     "id": path.stem,
                     "titulo": path.name,
-                    "contenido": content
+                    "contenido": content,
+                    "source_path": str(path),
                 })
     return docs
