@@ -33,7 +33,7 @@ La aplicacion usa LangChain con un proveedor compatible con OpenAI. La configura
 
 ```env
 LLM_BASE_URL=https://integrate.api.nvidia.com/v1
-LLM_MODEL=nvidia/nemotron-3-ultra-550b-a55b
+LLM_MODEL=nvidia/nemotron-3-super-120b-a12b
 LLM_API_KEY=
 LLM_TEMPERATURE=1
 LLM_TOP_P=0.95

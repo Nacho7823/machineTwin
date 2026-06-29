@@ -44,7 +44,7 @@ DOCS_DIR.mkdir(exist_ok=True)
 
 
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
-LLM_MODEL = os.getenv("LLM_MODEL", "nvidia/nemotron-3-ultra-550b-a55b")
+LLM_MODEL = os.getenv("LLM_MODEL", "nvidia/nemotron-3-super-120b-a12b")
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
 LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "1"))
 LLM_TOP_P = float(os.getenv("LLM_TOP_P", "0.95"))
