@@ -12,7 +12,7 @@
 - Juez principal: `nvidia/nemotron-3-super-120b-a12b`
 - Segundo juez: `meta/llama-3.3-70b-instruct`
 
-No se encontro en `tests/reports/` una corrida nueva equivalente para `System Prompt version = 0.0.2`; este documento analiza la corrida completa disponible.
+Se detecto tambien un reporte parcial para `System Prompt version = 0.0.2` (`tests/reports/benchmark_20260629_194931.json`), pero solo contiene 4/19 casos completados. Por eso no se usa para esta evaluacion final; este documento analiza la corrida completa disponible.
 
 ## Metodologia de lectura
 
@@ -29,7 +29,7 @@ Las metricas usadas son:
 - `answer_relevance`
 - `context_precision`
 
-## Resultado global
+## Resultado global integrado
 
 | Lectura | Resultado |
 |---|---:|
@@ -37,7 +37,48 @@ Las metricas usadas son:
 | Aprobacion combinada de ambos jueces | 13/19 (68.42%) |
 | Aprobacion combinada excluyendo el caso con timeout de LLM | 13/18 (72.22%) |
 
-## Promedios por metrica
+Este resultado integrado combina dos tipos de evaluacion que conviene leer por separado:
+
+1. Checks deterministas de ejecucion y uso de tools.
+2. Puntajes semanticos de LLM-as-a-judge.
+
+## Evaluacion de ejecucion y tools
+
+Estos checks se aplican sobre los 19 casos.
+
+| Check | Resultado | Interpretacion |
+|---|---:|---|
+| Respuesta no vacia | 19/19 (100.00%) | Todos los casos generaron algun contenido. |
+| Respuesta sin error del proveedor | 18/19 (94.74%) | Un caso fallo por timeout del LLM. |
+| Tools esperadas usadas | 14/19 (73.68%) | Cinco casos respondieron sin dejar trazada una tool esperada. |
+| Checks deterministas completos | 13/19 (68.42%) | Casos que pasaron respuesta no vacia, sin error y tools esperadas. |
+
+Fallos por tools esperadas:
+
+- `conversational_memory`
+- `high_vibration_advice`
+- `missing_variable_trend`
+- `operational_problem_summary`
+- `rag_source_request`
+
+Fallo por error del proveedor/modelo:
+
+- `verify_failure_actions`: `Request timed out`
+
+Esta separacion es importante: varios casos fallidos por tools tienen respuestas utiles o incluso buenas metricas semanticas, pero no cumplen la exigencia de trazabilidad.
+
+## Evaluacion por metricas LLM-as-a-judge
+
+Las metricas no se aplican a los 19 casos, sino solo a los casos seleccionados por el perfil `semantic_rag`. En esta corrida hubo 7 casos con al menos un puntaje disponible de juez. Todos esos casos superaron el umbral combinado de 0.7:
+
+| Lectura de metricas | Resultado |
+|---|---:|
+| Casos con puntaje de juez disponible | 7 |
+| Casos con promedio combinado >= 0.7 | 7/7 (100.00%) |
+| Promedio combinado por caso | 0.8500 |
+| Promedio combinado por observacion de metrica | 0.8253 |
+
+Promedios por metrica:
 
 | Metrica | Juez principal | Segundo juez | Promedio combinado |
 |---|---:|---:|---:|
@@ -46,6 +87,19 @@ Las metricas usadas son:
 | `context_precision` | 0.6423 (n=2) | 0.7227 (n=2) | 0.5767 (n=3) |
 
 La metrica mas debil sigue siendo `context_precision`. Esto sugiere que, aunque las respuestas suelen ser relevantes y bastante fieles, el orden/calidad de los fragmentos recuperados por RAG no siempre coincide con lo que el juez espera como contexto mas preciso.
+
+## Lectura consolidada
+
+| Dimension evaluada | Casos/mediciones | Resultado final |
+|---|---:|---:|
+| Ejecucion sin error de proveedor | 19 casos | 18/19 (94.74%) |
+| Uso de tools esperadas | 19 casos | 14/19 (73.68%) |
+| Checks deterministas completos | 19 casos | 13/19 (68.42%) |
+| Calidad semantica combinada | 7 casos con puntaje | 7/7 (100.00%) |
+| Resultado integrado combinado | 19 casos | 13/19 (68.42%) |
+| Resultado integrado sin timeout LLM | 18 casos | 13/18 (72.22%) |
+
+La conclusion principal es que la calidad semantica de las respuestas juzgadas es buena cuando hay puntajes disponibles, pero el resultado integrado baja por fallos de trazabilidad de tools y por un timeout aislado del proveedor.
 
 ## Resultado por caso
 
@@ -83,16 +137,18 @@ El check `expected_tools_used` paso, por lo que el agente llego a ejecutar la to
 
 ## Interpretacion
 
-La corrida muestra una mejora clara respecto de benchmarks anteriores: el agente completa los 19 casos, no hay rate limit, y la mayoria de los casos relevantes aprueban. Con lectura combinada de ambos jueces, el resultado queda en 68.42%, o 72.22% si se excluye el unico caso afectado por timeout del LLM.
+La corrida muestra una mejora clara respecto de benchmarks anteriores: el agente completa los 19 casos y no hay rate limit. Separando los criterios, se ve que la calidad semantica de las respuestas juzgadas es alta: 7/7 casos con puntaje disponible superan el umbral combinado, con promedio por caso de 0.8500.
 
-Los principales problemas no son de contenido final sino de trazabilidad de tools. Hay casos donde la respuesta parece adecuada, e incluso obtiene buen puntaje del juez, pero falla porque no quedo registrada una tool esperada:
+El problema principal no esta en las metricas semanticas, sino en la trazabilidad de tools: el check `expected_tools_used` aprueba 14/19 casos. Hay casos donde la respuesta parece adecuada, e incluso obtiene buen puntaje del juez, pero falla porque no quedo registrada una tool esperada:
 
 - `operational_problem_summary`: ambos jueces dan 1.0, pero falta tool esperada.
 - `rag_source_request`: responde fuentes, pero no queda trazada la consulta documental.
 - `high_vibration_advice`: responde tecnicamente, pero falta una tool esperada.
 - `missing_variable_trend`: responde correctamente que no existe humedad relativa, pero no queda trazado `analizar_tendencia`.
 
-Tambien se observa variabilidad entre jueces. Nemotron tiende a ser mas favorable en algunos casos, mientras que Llama penaliza mas la relevancia o precision documental. Por eso el promedio combinado es una lectura mas robusta que mirar solo un juez.
+Tambien se observa un error de ejecucion aislado en `verify_failure_actions`, donde el proveedor/modelo respondio con timeout. Excluyendo ese caso, el resultado integrado sube de 68.42% a 72.22%.
+
+Hay variabilidad entre jueces. Nemotron tiende a ser mas favorable en algunos casos, mientras que Llama penaliza mas la relevancia o precision documental. Por eso el promedio combinado es una lectura mas robusta que mirar solo un juez.
 
 ## Puntos de mejora
 
