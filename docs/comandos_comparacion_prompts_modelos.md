@@ -26,11 +26,12 @@ En `TEST_PROFILE=semantic`, los 20 casos se ejecutan, pero solo estos usan juez:
 
 - `alert_details`: `faithfulness`, `answer_relevance`
 - `current_status`: `faithfulness`, `answer_relevance`
-- `documented_operation`: `faithfulness`, `answer_relevance`, `context_precision`
-- `maintenance_recommendation`: `faithfulness`, `answer_relevance`, `context_precision`
+- `documented_operation`: `faithfulness`, `answer_relevance`, `context_precision`, `context_recall`
+- `high_vibration_advice`: `faithfulness`, `answer_relevance`, `context_precision`, `context_recall`
+- `maintenance_recommendation`: `faithfulness`, `answer_relevance`, `context_precision`, `context_recall`
 - `operational_problem_summary`: `answer_relevance`
 - `out_of_limits`: `faithfulness`, `answer_relevance`
-- `rag_source_request`: `faithfulness`, `answer_relevance`, `context_precision`
+- `rag_source_request`: `faithfulness`, `answer_relevance`, `context_precision`, `context_recall`
 - `recent_events`: `faithfulness`, `answer_relevance`
 
 Los demas casos quedan evaluados por checks deterministas. Esto cubre seguridad de dominio, memoria conversacional, uso de tools, respuestas no vacias y flujo funcional sin gastar llamadas adicionales del juez.

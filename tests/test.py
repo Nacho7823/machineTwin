@@ -20,11 +20,12 @@ PROFILE_DESCRIPTIONS = {
 SEMANTIC_PROFILE_METRICS = {
     "alert_details": ["faithfulness", "answer_relevance"],
     "current_status": ["faithfulness", "answer_relevance"],
-    "documented_operation": ["faithfulness", "answer_relevance", "context_precision"],
-    "maintenance_recommendation": ["faithfulness", "answer_relevance", "context_precision"],
+    "documented_operation": ["faithfulness", "answer_relevance", "context_precision", "context_recall"],
+    "high_vibration_advice": ["faithfulness", "answer_relevance", "context_precision", "context_recall"],
+    "maintenance_recommendation": ["faithfulness", "answer_relevance", "context_precision", "context_recall"],
     "operational_problem_summary": ["answer_relevance"],
     "out_of_limits": ["faithfulness", "answer_relevance"],
-    "rag_source_request": ["faithfulness", "answer_relevance", "context_precision"],
+    "rag_source_request": ["faithfulness", "answer_relevance", "context_precision", "context_recall"],
     "recent_events": ["faithfulness", "answer_relevance"],
 }
 
@@ -143,6 +144,10 @@ def _build_report(status, results, case_reports, total_cases):
         "completed_cases": len(case_reports),
         "averages": {
             metric: (sum(scores) / len(scores) if scores else None)
+            for metric, scores in results.items()
+        },
+        "metric_counts": {
+            metric: len(scores)
             for metric, scores in results.items()
         },
         "approval_rate": approval_rate,
@@ -270,9 +275,12 @@ def test():
     print("RESUMEN CONSOLIDADO DE PROMEDIOS DE BENCHMARKS")
     print("=" * 60)
     for metric, scores in results.items():
-        avg = sum(scores) / len(scores) if scores else 0.0
         metric_name = metric.replace("_", " ").title()
-        print(f"  - Promedio {metric_name}: {avg:.4f} (basado en {len(scores)} pruebas)")
+        if scores:
+            avg = sum(scores) / len(scores)
+            print(f"  - Promedio {metric_name}: {avg:.4f} (basado en {len(scores)} pruebas)")
+        else:
+            print(f"  - Promedio {metric_name}: sin datos (basado en 0 pruebas)")
     approved_count = sum(1 for case in case_reports if case["approved"])
     approval_rate = approved_count / len(case_reports) if case_reports else 0.0
     print(f"  - Porcentaje de aprobacion: {approval_rate:.2%} ({approved_count}/{len(case_reports)})")
