@@ -3,11 +3,13 @@ import json
 import contextlib
 
 import pandas as pd
-from log import get_logger
+from log import get_logger, log_trace_event
 from langchain_core.tools import tool
 from pathlib import Path
 from utils import read_csv_with_fallback, read_text_with_fallback
 from rag.rag import DocumentRAG
+from simulator.machine_configs import MACHINE_CONFIGS
+from limits import classify_machine_limits
 logger = get_logger(__name__)
 
 DEFAULT_TREND_WINDOW = 50
@@ -111,6 +113,30 @@ def _trend_for_series(series: pd.Series, variable: str) -> str:
     ])
 
 
+def _format_limit_entry(variable_name: str, entry: dict) -> str:
+    value = entry.get("value", "sin dato")
+    unit = entry.get("unit", "")
+    optimal = f'{entry.get("optimal_min")}..{entry.get("optimal_max")}'
+    operational = f'{entry.get("operational_min")}..{entry.get("operational_max")}'
+    label = entry.get("label", variable_name)
+    return (
+        f"- {label} ({variable_name}): valor={value} {unit}; "
+        f"estado={entry.get('state')}; optimo={optimal} {unit}; operativo={operational} {unit}"
+    )
+
+
+def _rag_chunk_metadata(result: dict) -> dict:
+    metadata = result.get("metadata", {})
+    return {
+        "doc_id": metadata.get("doc_id"),
+        "title": metadata.get("titulo"),
+        "source_path": metadata.get("source_path"),
+        "chunk_index": metadata.get("chunk_index"),
+        "distance": result.get("distance"),
+        "preview": str(result.get("document", ""))[:240],
+    }
+
+
 class TwinTools:
     def __init__(self, data_dir: Path, docs_dir: Path):
         self.data_dir = Path(data_dir)
@@ -125,7 +151,19 @@ class TwinTools:
             try:
                 resultados = self.rag.query(q)
                 if not resultados:
+                    log_trace_event({
+                        "event": "rag_retrieval",
+                        "query": q,
+                        "rag_chunks": [],
+                    })
                     return "No se encontraron documentos relevantes."
+                rag_chunks = [_rag_chunk_metadata(r) for r in resultados]
+                log_trace_event({
+                    "event": "rag_retrieval",
+                    "query": q,
+                    "rag_chunks": rag_chunks,
+                    "rag_chunk_count": len(rag_chunks),
+                })
                 contexto_partes = [
                     f'[{i+1}] ({r["metadata"]["titulo"]}): {r["document"]}'
                     for i, r in enumerate(resultados)
@@ -189,6 +227,33 @@ class TwinTools:
                 )
 
             return "\n".join(lines)
+
+        @tool
+        def detectar_fuera_de_limites() -> str:
+            """Compara las variables actuales contra rangos optimos y operativos configurados por maquina."""
+            logger.info("Se ejecuto la herramienta 'detectar_fuera_de_limites'")
+            machines = _discover_machine_data(self.data_dir)
+            if not machines:
+                return "No hay datos actuales disponibles para evaluar limites."
+
+            sections = []
+            for machine in machines:
+                current = machine.get("current", {})
+                machine_key = machine.get("name", "")
+                if not current:
+                    sections.append(f"Maquina: {_machine_name(machine)}\n- sin_datos: no hay estado actual.")
+                    continue
+                if machine_key not in MACHINE_CONFIGS:
+                    sections.append(f"Maquina: {_machine_name(machine)}\n- sin_datos: no hay configuracion de rangos para '{machine_key}'.")
+                    continue
+
+                classified = classify_machine_limits(machine_key, current)
+                lines = [f"Maquina: {_machine_name(machine)}", f"Clave: {machine_key}"]
+                for variable_name, entry in classified.items():
+                    lines.append(_format_limit_entry(variable_name, entry))
+                sections.append("\n".join(lines))
+
+            return "\n\n".join(sections)
 
         @tool
         def analizar_tendencia(variable: str, ventana: int = DEFAULT_TREND_WINDOW) -> str:
@@ -365,6 +430,7 @@ Escribe SOLO el código analítico. Usa print() para mostrar resultados.
             "consultar_documentacion": consultar_documentacion,
             "obtener_estado_actual": obtener_estado_actual,
             "consultar_eventos_recientes": consultar_eventos_recientes,
+            "detectar_fuera_de_limites": detectar_fuera_de_limites,
             "analizar_tendencia": analizar_tendencia,
             "listar_archivos_datos": listar_archivos_datos,
             "leer_archivo_datos": leer_archivo_datos,
