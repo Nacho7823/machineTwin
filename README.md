@@ -280,20 +280,11 @@ TEST_PROFILE=functional \
 .venv/bin/python -m tests
 ```
 
-Corrida semantica recomendada. Ejecuta los 19 casos, pero solo usa juez en casos representativos y con metricas utiles por caso:
+Corrida semantica + RAG recomendada. Ejecuta los 19 casos, pero solo usa juez en casos representativos y con metricas utiles por caso, incluyendo los casos documentales necesarios:
 
 ```bash
 SYSTEM_PROMPT_VERSION=0.0.2 \
-TEST_PROFILE=semantic \
-JUDGE_METRIC_TIMEOUT_SECONDS=0 \
-.venv/bin/python -m tests
-```
-
-Corrida RAG completa. Ejecuta solo casos de documentacion/RAG y calcula las tres metricas:
-
-```bash
-SYSTEM_PROMPT_VERSION=0.0.2 \
-TEST_PROFILE=rag_full \
+TEST_PROFILE=semantic_rag \
 JUDGE_METRIC_TIMEOUT_SECONDS=0 \
 .venv/bin/python -m tests
 ```
@@ -311,7 +302,7 @@ Ejemplo para ejecutar la corrida semantica con un modelo especifico sin editar `
 
 ```bash
 SYSTEM_PROMPT_VERSION=0.0.2 \
-TEST_PROFILE=semantic \
+TEST_PROFILE=semantic_rag \
 JUDGE_METRIC_TIMEOUT_SECONDS=0 \
 LLM_MODEL=meta/llama-3.3-70b-instruct \
 LLM_TEMPERATURE=0.2 \

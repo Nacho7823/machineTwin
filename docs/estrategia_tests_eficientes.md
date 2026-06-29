@@ -24,11 +24,10 @@ Se separan dos niveles de evaluacion:
    - tools esperadas usadas.
 
 2. LLM-as-a-judge solo cuando aporta valor:
-   - `TEST_PROFILE=semantic` ejecuta los 19 casos y juzga solo casos representativos;
-   - `TEST_PROFILE=rag_full` ejecuta solo casos RAG/documentacion con las tres metricas;
+   - `TEST_PROFILE=semantic_rag` ejecuta los 19 casos y juzga casos semanticos y RAG/documentacion representativos;
    - `TEST_PROFILE=exhaustive` ejecuta los 19 casos con las tres metricas.
 
-## Casos con LLM-as-a-judge en semantic
+## Casos con LLM-as-a-judge en semantic_rag
 
 | Caso | Metricas |
 |---|---|
@@ -40,8 +39,10 @@ Se separan dos niveles de evaluacion:
 | `out_of_limits` | `faithfulness`, `answer_relevance` |
 | `rag_source_request` | `faithfulness`, `answer_relevance`, `context_precision` |
 | `recent_events` | `faithfulness`, `answer_relevance` |
+| `stop_criteria` | `faithfulness`, `answer_relevance`, `context_precision` |
+| `verify_failure_actions` | `faithfulness`, `answer_relevance`, `context_precision` |
 
-Los demas casos se evaluan por checks deterministas en la corrida semantica.
+Los demas casos se evaluan por checks deterministas en la corrida semantica + RAG.
 
 ## Modos de ejecucion
 
@@ -54,13 +55,7 @@ SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=functional .venv/bin/python -m tests
 Corrida recomendada:
 
 ```bash
-SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=semantic JUDGE_METRIC_TIMEOUT_SECONDS=0 .venv/bin/python -m tests
-```
-
-Corrida RAG/documentacion completa:
-
-```bash
-SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=rag_full JUDGE_METRIC_TIMEOUT_SECONDS=0 .venv/bin/python -m tests
+SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=semantic_rag JUDGE_METRIC_TIMEOUT_SECONDS=0 .venv/bin/python -m tests
 ```
 
 Corrida exhaustiva:
@@ -72,9 +67,9 @@ SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=exhaustive JUDGE_METRIC_TIMEOUT_SECONDS
 Segundo juez configurable:
 
 ```bash
-SECOND_JUDGE_LLM_MODEL=otro/modelo SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=semantic .venv/bin/python -m tests
+SECOND_JUDGE_LLM_MODEL=otro/modelo SYSTEM_PROMPT_VERSION=0.0.2 TEST_PROFILE=semantic_rag .venv/bin/python -m tests
 ```
 
 ## Recomendacion
 
-Usar `TEST_PROFILE=semantic` para comparar versiones del prompt y modelos. Reservar `TEST_PROFILE=rag_full` para diagnosticar calidad de recuperacion documental y `TEST_PROFILE=exhaustive` para una corrida final si hay cuota suficiente.
+Usar `TEST_PROFILE=semantic_rag` para comparar versiones del prompt y modelos. Reservar `TEST_PROFILE=exhaustive` para una corrida final si hay cuota suficiente.

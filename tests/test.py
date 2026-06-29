@@ -12,12 +12,11 @@ ALL_METRICS = ["faithfulness", "answer_relevance", "context_precision"]
 
 PROFILE_DESCRIPTIONS = {
     "functional": "19 casos con checks deterministas y sin LLM-as-judge.",
-    "semantic": "19 casos con judge solo en casos representativos y metricas utiles por caso.",
-    "rag_full": "Solo casos RAG/documentacion con las tres metricas.",
+    "semantic_rag": "19 casos con judge semantico y RAG en casos representativos.",
     "exhaustive": "19 casos con las tres metricas en todos los casos.",
 }
 
-SEMANTIC_PROFILE_METRICS = {
+SEMANTIC_RAG_PROFILE_METRICS = {
     "current_status": ["faithfulness", "answer_relevance"],
     "documented_operation": ["faithfulness", "answer_relevance", "context_precision"],
     "high_vibration_advice": ["faithfulness", "answer_relevance", "context_precision"],
@@ -26,14 +25,8 @@ SEMANTIC_PROFILE_METRICS = {
     "out_of_limits": ["faithfulness", "answer_relevance"],
     "rag_source_request": ["faithfulness", "answer_relevance", "context_precision"],
     "recent_events": ["faithfulness", "answer_relevance"],
-}
-
-RAG_FULL_CASES = {
-    "documented_operation",
-    "maintenance_recommendation",
-    "rag_source_request",
-    "stop_criteria",
-    "verify_failure_actions",
+    "stop_criteria": ["faithfulness", "answer_relevance", "context_precision"],
+    "verify_failure_actions": ["faithfulness", "answer_relevance", "context_precision"],
 }
 
 
@@ -58,7 +51,10 @@ def _measure_selected(trace, expected_output, model, metric_names):
 
 
 def _active_profile():
-    return benchmarks.TEST_PROFILE or ""
+    profile = benchmarks.TEST_PROFILE or ""
+    if profile == "semantic":
+        return "semantic_rag"
+    return profile
 
 
 def _legacy_judge_metrics(configs):
@@ -75,10 +71,8 @@ def _case_judge_metrics(folder_name, configs):
         return _legacy_judge_metrics(configs)
     if profile == "functional":
         return []
-    if profile == "semantic":
-        return SEMANTIC_PROFILE_METRICS.get(folder_name, [])
-    if profile == "rag_full":
-        return ALL_METRICS if folder_name in RAG_FULL_CASES else []
+    if profile == "semantic_rag":
+        return SEMANTIC_RAG_PROFILE_METRICS.get(folder_name, [])
     if profile == "exhaustive":
         return ALL_METRICS
     valid = ", ".join(PROFILE_DESCRIPTIONS)
@@ -86,9 +80,6 @@ def _case_judge_metrics(folder_name, configs):
 
 
 def _select_test_folders(test_folders):
-    profile = _active_profile()
-    if profile == "rag_full":
-        return [folder for folder in test_folders if folder.name in RAG_FULL_CASES]
     return test_folders
 
 
